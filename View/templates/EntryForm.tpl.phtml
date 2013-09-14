@@ -1,0 +1,243 @@
+<style>
+    a.button{
+        padding: 0 10px;
+        background-color: #F57912;
+        color: #FFF;
+        margin-left: 5px;
+    }
+    
+    #formButtons{
+        margin-top: 20px;
+    }
+
+    .formElement{margin-bottom: 20px;}
+
+    .formElement label{
+        font-weight: bold;
+        font-size: 15px;
+    }
+
+    .formElement label span{font-weight: normal;font-size: 10px}
+
+    .formElement .text{width: 95%;}
+
+    .formElement #mainText{height: 350px;}
+
+    .formElement #cmslink{width: 50px;}
+    
+    .formElement #datepicker_show, .formElement #datepicker_show2{width: 80px;}
+
+    #containerCms, #containerMainText, #containerExt, #containerTeasertext{display: none;}
+
+    #entryForm .error{
+        background-color: darkred;
+        color: #fff;
+        padding: 5px;
+        margin-bottom: 10px;
+        font-size: 15px;
+        font-weight: bold;
+        text-align: center;
+        border-radius: 10px;
+        width: 95%;
+    }
+
+    #entryForm .error p{
+        padding: 0;
+        margin: 0;
+    }
+
+    .datepicker{position: relative;}
+
+    img.ui-datepicker-trigger{
+        position: absolute;
+        top: 17px;
+        left: 90px;
+        cursor: pointer;
+    }
+
+    #entryForm{position: relative;}
+
+    #dateto{
+        float: left;
+        margin-left: 50px;
+    }
+
+    #entryForm h2{margin: 0;}
+    #entryForm form{margin-top: 30px;}
+    #back a{
+        padding: 0 10px;
+        background-color: #F57912;
+        color: #FFF;
+    }
+    
+    img.events_logo{
+        max-width: 170px;
+        height: auto;
+        max-height: 110px;
+    }
+</style>
+<script>
+    $(document).ready(function() {
+        var icon = "<?php echo $this->mediaUrl; ?>pics/fatcow_icons/16x16_0180/calendar.png";
+
+        $("#datepicker_show").datepicker({
+            altField: "#datepicker",
+            altFormat: "yymmdd",
+            showOn: "button",
+            buttonImage: "<?php echo $this->mediaUrl ?>pics/fatcow_icons/16x16_0180/calendar.png",
+            buttonImageOnly: true
+        });
+        $("#datepicker_show").datepicker("option", "dateFormat", "dd.mm.yy");
+
+        var date = "<?php echo $this->formatDate($this->entity->getValueByKey('opt2number')); ?>";
+        $("#datepicker_show").datepicker("setDate", date);
+
+        $("#datepicker_show2").datepicker({
+            altField: "#datepicker2",
+            altFormat: "yymmdd",
+            showOn: "button",
+            buttonImage: "<?php echo $this->mediaUrl ?>pics/fatcow_icons/16x16_0180/calendar.png",
+            buttonImageOnly: true
+        });
+        $("#datepicker_show2").datepicker("option", "dateFormat", "dd.mm.yy");
+
+        var date2 = "<?php echo $this->formatDate($this->entity->getValueByKey('opt4number')); ?>";
+        $("#datepicker_show2").datepicker("setDate", date2);
+
+        <?php if ($this->entity->getValueByKey("opt5number") == 2) : ?>
+        $('#containerTeasertext').show();
+        $('#containerCms').show();
+        <?php elseif ($this->entity->getValueByKey("opt5number") == 1) : ?>
+        $('#containerMainText').show();
+        <?php elseif ($this->entity->getValueByKey("opt5number") == 3) : ?>
+        $('#containerTeasertext').show();
+        $('#containerExt').show();
+        <?php else : ?>
+        $('#containerMainText').show();
+        <?php endif; ?>
+            
+            
+        $('.typetext').click(function(){
+            $('#containerCms').hide();
+            $('#containerExt').hide();
+            $('#containerTeasertext').hide();
+            $('#containerMainText').show();
+        });
+        $('.typecms').click(function(){
+            $('#containerMainText').hide();
+            $('#containerExt').hide();
+            $('#containerTeasertext').show();
+            $('#containerCms').show();
+        });
+        $('.typeext').click(function(){
+            $('#containerMainText').hide();
+            $('#containerCms').hide();
+            $('#containerTeasertext').show();
+            $('#containerExt').show();
+        });            
+            
+    });
+
+// Notice: The simple theme does not use all options some of them are limited to the advanced theme
+    tinyMCE.init({
+        mode: "specific_textareas",
+        editor_selector: "mceEditor",
+        theme: "simple",
+        language: "de",
+        convert_urls: false,
+        relative_urls: false,
+        remove_script_host: false
+    });
+</script>
+
+<div id="entryForm">
+    <h2 style="font-size:20px;"><?php echo $this->formTitle ?></h2>
+    <div id="back">
+        <a href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"showList")); ?>"> zur&uuml;ck</a>
+    </div>
+
+    <form action="<?php echo $this->actionUrl; ?>" method="POST" ENCTYPE="multipart/form-data">
+
+        <div>
+            <div class="formElement datepicker" style="float:left">
+                <label for="datepicker">Datum:<span>(von)</span></label><br>
+                <input id="datepicker_show" class="text" type="text" value="">
+                <input id="datepicker" class="text" type="hidden" name="opt2number" value="">
+            </div>
+            <div id="dateto" class="formElement datepicker">
+                <label for="datepicker">Datum:<span>(bis)</span></label><br>
+                <input id="datepicker_show2" class="text" type="text" value="">
+                <input id="datepicker2" class="text" type="hidden" name="opt4number" value="">
+            </div>
+        </div>
+        <div style="clear:both;">&nbsp;</div>
+        <div class="formElement" >
+            <label for="headline1">&Uuml;berschrift:</label><br>
+            <input id="headline1" class="text" type="text" name="opt1text" value="<?php echo $this->entity->getValueByKey("opt1text"); ?>">
+        </div>
+
+        <div class="formElement">
+            <label for="headline2">Ort:</label><br>
+            <input id="headline2" class="text" type="text" name="opt2text" value="<?php echo $this->entity->getValueByKey("opt2text"); ?>">
+        </div>
+        
+        <!-- Logo -->
+        
+        <div class="formElement">
+            <div id="uploadedFile">
+                <h3>Hochgeladene Datei: <?php if(!$this->entity->getValueByKey("opt1file")) :?><span>keine</span><?php endif; ?></h3>
+                <?php if($this->entity->getValueByKey("opt1file")) :?>
+                    <div>
+                        <a class="button" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"deleteLogo", "id"=>$this->entity->getValueByKey("id"))); ?>" onclick="return confirm('Logo wirklich l&ouml;schen ?');" >Logo l&ouml;schen</a>
+                    </div>
+                    <img class="events_logo" src="<?php echo $this->config['url']['resource']."lw_events/".$this->entity->getValueByKey("opt1file"); ?>">
+                <?php endif; ?>
+            </div>
+            <input class="upload" name="opt1file" type="file">
+        </div>
+        
+        
+        
+        <div class="formElement">
+            <h2>Bitte Termin-Eingabe w&auml;hlen:</h2>
+
+            <input class="typetext" type="radio" id="typetext" value="1" name="opt5number" <?php if (!$this->entity->getValueByKey("opt5number") || $this->entity->getValueByKey("opt5number") == 1): ?> checked="checked" <?php endif; ?>>
+            <label class="typetext" for="typetext">Texteingabe</label><br/>
+
+            <input class="typecms" type="radio" id="typecms" value="2" name="opt5number" <?php if ($this->entity->getValueByKey("opt5number") == 2) : ?> checked="checked" <?php endif; ?>>
+            <label class="typecms" for="typecms">Verweis auf eine CMS-Seite</label><br>
+
+            <input class="typeext" type="radio" id="typeext" value="3" name="opt5number" <?php if ($this->entity->getValueByKey("opt5number") == 3) : ?> checked="checked" <?php endif; ?>>
+            <label class="typeext" for="typeext">Verweis auf eine externe Seite</label>
+        </div>
+
+        <div id="containerMainText" class="formElement">
+
+            <label for="mainText">Text:</label><br>
+            <textarea id="mainText" class="text mceEditor" name="opt1clob"><?php echo $this->entity->getValueByKey("opt1clob"); ?></textarea><br>
+        </div>
+
+        <div id="containerTeasertext" class="formElement">
+            <label for="link">Teasertext:</label><br>
+            <textarea id="teasertext" class="text mceEditor" type="text" name="opt2clob"><?php echo $this->entity->getValueByKey("opt2clob"); ?></textarea>
+        </div>
+        
+        <div id="containerCms" class="formElement">
+            <label for="link">Seiten Id:</label><br>
+            <span>Soll auf eine Seite im CMS verwiesen werden, so ist hier die Indexnr. einzutragen.</span><br>
+            <input id="cmslink" class="text" type="text" name="opt1number" value="<?php echo $this->entity->getValueByKey("opt1number"); ?>" >
+        </div>
+
+        <div id="containerExt" class="formElement">
+            <label for="link">Url:</label><br>
+            <input id="extlink" class="text" type="text" name="opt3text" value="<?php echo $this->entity->getValueByKey("opt3text"); ?>" >
+        </div>
+
+        <input type="hidden" name="sent" value="1">
+
+        <div id="formButtons">
+            <input type="submit" value="speichern">
+        </div>
+    </form>
+
+</div>
