@@ -6,8 +6,6 @@ define("LW_REQUIRED_ERROR", "1");
 define("LW_MAXLENGTH_ERROR", "2");
 define("LW_BOOL_ERROR", "3");
 define("LW_FILETOOBIG_ERROR", "4");
-define("LW_WHITELIST_ERROR", "5");
-define("LW_BLACKLIST_ERROR", "6");
 
 class isValid extends \LWmvc\Model\Validator
 {
@@ -15,12 +13,15 @@ class isValid extends \LWmvc\Model\Validator
     {
         $this->allowedKeys = array(
                 "id",
+                "opt1number",
                 "opt2number",
                 "opt1bool",
                 "opt1text",
                 "opt2text",
                 "opt3text",
-                "opt1file");
+                "opt1file",
+                "opt1clob",
+                "opt2clob");
         
         $mvalue = ini_get("upload_max_filesize");
         if (intval($mvalue) > intval(ini_get("post_max_size"))) $mvalue = ini_get("post_max_size");
@@ -67,17 +68,89 @@ class isValid extends \LWmvc\Model\Validator
         $value = trim($object->getValueByKey($key));
                
         if (!$value) {
-            $this->addError($key, LW_REQUIRED_ERROR);
+            $this->addError($key, 'lwmvc_4');
             return false;
         }
         
         $maxlength = 255;
         if (!$this->hasMaxlength($value, array("maxlength"=>$maxlength)) ) {
-            $this->addError($key, LW_MAXLENGTH_ERROR, array("maxlength"=>$maxlength));
+            $this->addError($key, 'lwmvc_2', array("maxlength"=>$maxlength));
             return false;
         }
         return true;
     }
     
-  
+    public function opt2textValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+               
+        if (!$value) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        
+        $maxlength = 255;
+        if (!$this->hasMaxlength($value, array("maxlength"=>$maxlength)) ) {
+            $this->addError($key, 'lwmvc_2', array("maxlength"=>$maxlength));
+            return false;
+        }
+        return true;
+    }
+
+    public function opt2numberValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+               
+        if (!$value) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        
+        $maxlength = 8;
+        if (!$this->hasMaxlength($value, array("maxlength"=>$maxlength)) ) {
+            $this->addError($key, 'lwmvc_2', array("maxlength"=>$maxlength));
+            return false;
+        }
+        return true;
+    }
+    
+    public function opt1clobValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+        if (!$value && $object->getValueByKey('opt5number') == 1) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        return true;
+    }
+
+    public function opt2clobValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+        if (!$value && ($object->getValueByKey('opt5number') == 2 || $object->getValueByKey('opt5number') == 3)) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        return true;
+    }
+
+    public function opt1numberValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+        if (!$value && $object->getValueByKey('opt5number') == 2) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        return true;
+    }
+    
+    public function opt3textValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+        if (!$value && $object->getValueByKey('opt5number') == 3) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        return true;
+    }    
 }

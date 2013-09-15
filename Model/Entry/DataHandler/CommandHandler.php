@@ -19,35 +19,13 @@ class CommandHandler extends \LWmvc\Model\DataCommandHandler
         return $this->filePath;
     }
     
-    public function deleteEntity($id, $listId)
+    public function deleteEntity($id)
     {
-        $this->db->setStatement("DELETE FROM t:lw_master WHERE id = :id AND category_id = :listid ");
-        $this->db->bindParameter("id", 'i', $id);
-        $this->db->bindParameter("listid", 'i', $listId);
-        $ok = $this->db->pdbquery();
-        if ($ok) {
-            $this->deleteFiles($id);
-        }
-        return $ok;
-    }
-    
-    protected function deleteFiles($id)
-    {
-        $dir = \lw_directory::getInstance($this->getFilePath());
-        $files = $dir->getDirectoryContents('file');
-        foreach ($files as $file) {
-            if (strstr($file->getName(), 'item_'.$id.'.')) {
-                $file->delete();
-            }
-        }        
+        $this->deleteLogo($id);
         
-        $dir = \lw_directory::getInstance($this->getFilePath()."archive/");
-        $files = $dir->getDirectoryContents('file');
-        foreach ($files as $file) {
-            if (strstr($file->getName(), 'item_'.$id.'.')) {
-                $file->delete();
-            }
-        }
+        $this->db->setStatement("DELETE FROM t:lw_master WHERE lw_object = 'lw_events' AND id = :id");
+        $this->db->bindParameter("id", 'i', $id);
+        return $this->db->pdbquery();
     }
     
     public function addEntity($array, $userId)

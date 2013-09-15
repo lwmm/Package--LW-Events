@@ -45,6 +45,8 @@ class save extends \LWmvc\Model\CommandResolver
             $parameter['teaserview'] = $dataValueObject->getValueByKey("teaserview");
             $parameter['teaserelements'] = $dataValueObject->getValueByKey("teaserelements");
             $parameter['calendar'] = $dataValueObject->getValueByKey("calendar");
+            $parameter['usecss'] = $dataValueObject->getValueByKey("usecss");
+            $parameter['adminmode'] = $dataValueObject->getValueByKey("adminmode");
             $content = false;
             $result = $this->getCommandHandler()->savePluginData($this->command->getParameterByKey('id'), $parameter, $content);
             $this->command->getResponse()->setParameterByKey('saved', true);

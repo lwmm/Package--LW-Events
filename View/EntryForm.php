@@ -39,6 +39,11 @@ class EntryForm extends \LWmvc\View\View
         else {
             $this->view->lang = "en";
         }
+        $this->view->usecss = $this->configuration->getValueByKey("usecss");
+        $this->view->ValidationErrorViewHelper = new \LWmvc\View\Helper\ValidationErrorViewHelper($this->configuration->getValueByKey('language'));
+        
+        //echo "<pre>";print_r($this->view->errors);exit();
+        
         return $this->view->render();
     }
 }

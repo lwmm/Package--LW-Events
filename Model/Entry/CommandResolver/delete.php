@@ -1,6 +1,6 @@
 <?php
 
-namespace LwListtool\Model\Entry\CommandResolver;
+namespace LwEvents\Model\Entry\CommandResolver;
 
 class delete extends \LWmvc\Model\CommandResolver
 {
@@ -8,7 +8,7 @@ class delete extends \LWmvc\Model\CommandResolver
     {
         parent::__construct($command);
         $this->dic = new \LwListtool\Services\dic();
-        $this->baseNamespace = "\\LwListtool\\Model\\Entry\\";
+        $this->baseNamespace = "\\LwEvents\\Model\\Entry\\";
         $this->ObjectClass = $this->baseNamespace."Object\\entry";
     }
     
@@ -20,8 +20,8 @@ class delete extends \LWmvc\Model\CommandResolver
     public function resolve()
     {
         $config = $this->dic->getConfiguration();
-        $this->getCommandHandler()->setFilePath($config['path']['listtool']);
-        $ok = $this->getCommandHandler()->deleteEntity($this->command->getParameterByKey("id"), $this->command->getParameterByKey("listId"));
+        $this->getCommandHandler()->setFilePath($config['path']['resource'].'lw_events/');
+        $ok = $this->getCommandHandler()->deleteEntity($this->command->getParameterByKey("id"));
         if ($ok) {
             $this->command->getResponse()->setParameterByKey('deleted', true);
         }

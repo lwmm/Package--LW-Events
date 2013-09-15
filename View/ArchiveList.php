@@ -21,38 +21,39 @@
 
 namespace LwEvents\View;
 
-class EntryList extends \LWmvc\View\View
+class ArchiveList extends \LWmvc\View\View
 {
-
     public function __construct()
     {
         parent::__construct('edit');
         $this->dic = new \LwEvents\Services\dic();
         $this->systemConfiguration = $this->dic->getConfiguration();
         $this->auth = $this->dic->getLwAuth();
-        $this->inAuth = $this->dic->getLwInAuth();
-        $this->view = new \lw_view(dirname(__FILE__) . '/templates/EntryList.tpl.phtml');
+        $this->view = new \lw_view(dirname(__FILE__) . '/templates/ArchiveList.tpl.phtml');
     }
 
     public function setConfiguration($configuration)
     {
         $this->configuration = $configuration;
     }
-
-    public function setListId($id)
+    
+    public function setArchiveYear($year)
     {
-        $this->listId = $id;
+        $this->view->year = $year;
+    }
+    
+    public function setAvailableYearsArray($array)
+    {
+        $this->view->availableYears = $array;
     }
 
     public function render()
     {
         $this->view->addUrl = \lw_page::getInstance()->getUrl(array("cmd"=>"showAddForm"));
         $this->view->admin = true;
+        $this->view->listId = $this->listId;
         $this->view->configuration = $this->configuration;
-        $this->view->lang = $this->configuration->getValueByKey("language");
         $this->view->usecss = $this->configuration->getValueByKey("usecss");
         return $this->view->render();
     }
-
 }
-

@@ -30,6 +30,23 @@ class Frontend extends \LWmvc\Controller\Controller
         $this->response = \lw_registry::getInstance()->getEntry("response");
         $this->request = \lw_registry::getInstance()->getEntry("request");
         $this->config = $this->dic->getConfiguration();
+        $this->response->useJQuery();
+        $this->response->useJQueryUI();
+    }
+    
+    public function setAdmin($bool)
+    {
+        if ($bool === true) {
+            $this->admin = true;
+        }
+        else {
+            $this->admin = false;
+        }
+    }
+    
+    public function isAdmin()
+    {
+        return $this->admin;
     }
     
     public function execute()
@@ -37,6 +54,14 @@ class Frontend extends \LWmvc\Controller\Controller
         $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Configuration', 'getConfigurationEntityById', array("id"=>$this->getContentObjectId()));
         $this->listConfig = $response->getDataByKey('ConfigurationEntity');
 
+        if ($this->listConfig->getValueByKey("admin") == 1 || \lw_registry::getInstance()->getEntry("auth")->isLoggedIn()) {
+            $this->setAdmin(true);
+        }
+        
+        if ($this->listConfig->getValueByKey('teaserview') == 1) {
+            return $this->showTeaserList();
+        }
+        
         $method = $this->getCommand()."Action";
         if (method_exists($this, $method)) {
             return $this->$method();
@@ -46,97 +71,137 @@ class Frontend extends \LWmvc\Controller\Controller
         }
     }    
     
-    protected function showListAction($error = false)
+    protected function getArchiveYear()
     {
-        $this->response->useJQuery();
-        $this->response->useJQueryUI();
-
+        $year = $this->request->getInt("year");
+        if (!$year) {
+            $year = date("Y");
+        }
+        return $year;
+    }
+    
+    protected function showListAction()
+    {
         $view = new \LwEvents\View\EntryList();
         $view->setConfiguration($this->listConfig);
-        $view->setListId($this->getContentObjectId());
 
-        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getListEntriesCollection', array("configuration"=>$this->listConfig, "listId"=>$this->getContentObjectId(), "listRights"=>$this->listRights));
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getListEntriesCollection', array("configuration"=>$this->listConfig));
         $view->setCollection($response->getDataByKey('listEntriesCollection'));
 
         $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getIsDeletableSpecification');
         $view->setIsDeletableSpecification($response->getDataByKey('isDeletableSpecification'));
         
         return $this->returnRenderedView($view);    
-     }
+    }
+    
+    protected function showTeaserList() 
+    {
+        $view = new \LwEvents\View\TeaserList();
+        $view->setConfiguration($this->listConfig);
+
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getListEntriesCollection', array("configuration"=>$this->listConfig));
+        $view->setCollection($response->getDataByKey('listEntriesCollection'));
+
+        return $this->returnRenderedView($view);    
+    }    
+    
+    protected function showArchiveAction()
+    {
+        $view = new \LwEvents\View\ArchiveList();
+        $view->setConfiguration($this->listConfig);
+        $view->setArchiveYear($this->getArchiveYear());
+        
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getArchivedListEntriesCollection', array("configuration"=>$this->listConfig, "year"=>$this->getArchiveYear()));
+        $view->setCollection($response->getDataByKey('listEntriesCollection'));
+
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getAllAvailableYearsArray', array("configuration"=>$this->listConfig));
+        $view->setAvailableYearsArray($response->getDataByKey('availableYearsArray'));
+
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getIsDeletableSpecification');
+        $view->setIsDeletableSpecification($response->getDataByKey('isDeletableSpecification'));
+        
+        return $this->returnRenderedView($view);    
+    }
      
-     protected function addEntryAction()
-     {
-        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'add', array("configuration" => $this->listConfig, "userId"=>\lw_in_auth::getInstance()->getUserdata("id")), array('postArray'=>$this->request->getPostArray(), 'opt1file'=>$this->request->getFileData('opt1file'), 'opt2file'=>$this->request->getFileData('opt2file')));
-        if ($response->getParameterByKey("error")) {
-            if ($this->request->getAlnum("type") == "file") {
-                return $this->showAddFileFormAction($response->getDataByKey("error"));
-            } 
-            else {
-                return $this->showAddLinkFormAction($response->getDataByKey("error"));
+    protected function showDetailAction()
+    {
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityById', array("id"=>$this->request->getInt("id"), "listId"=>$this->getContentObjectId()));
+        $entity = $response->getDataByKey('EntryEntity');
+        $entity->setId($this->request->getInt("id"));
+
+        $view = new \LwEvents\View\EntryDetail();
+        $view->setEntity($entity);
+        $view->setConfiguration($this->listConfig);
+        return $this->returnRenderedView($view);
+    }
+     
+    protected function addEntryAction()
+    {
+        if ($this->isAdmin()) {
+            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'add', array("configuration" => $this->listConfig, "userId"=>\lw_in_auth::getInstance()->getUserdata("id")), array('postArray'=>$this->request->getPostArray(), 'opt1file'=>$this->request->getFileData('opt1file'), 'opt2file'=>$this->request->getFileData('opt2file')));
+            if ($response->getParameterByKey("error")) {
+                return $this->showAddFormAction($response->getDataByKey("error"));
             }
+            return $this->buildReloadResponse(array("cmd"=>"showList"));
         }
-        return $this->buildReloadResponse(array("cmd"=>"showList"));
      }
 
      protected function showEditEntryFormAction($error=false)
      {
-        if ($error) {
-            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityFromPostArray', array(), array("postArray"=>$this->request->getPostArray()));
+        if ($this->isAdmin()) {
+            if ($error) {
+                $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityFromPostArray', array(), array("postArray"=>$this->request->getPostArray()));
+            }
+            else {
+                $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityById', array("id"=>$this->request->getInt("id"), "listId"=>$this->getContentObjectId()));
+            }
+            $entity = $response->getDataByKey('EntryEntity');
+            $entity->setId($this->request->getInt("id"));
+
+            $formView = new \LwEvents\View\EntryForm('edit');
+            $formView->setEntity($entity);
+            $formView->setConfiguration($this->listConfig);
+            $formView->setErrors($error);
+            return $this->returnRenderedView($formView);
         }
-        else {
-            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityById', array("id"=>$this->request->getInt("id"), "listId"=>$this->getContentObjectId()));
-        }
-        $entity = $response->getDataByKey('EntryEntity');
-        $entity->setId($this->request->getInt("id"));
-        
-        $formView = new \LwEvents\View\EntryForm('edit');
-        $formView->setEntity($entity);
-        $formView->setConfiguration($this->listConfig);
-        $formView->setErrors($error);
-        return $this->returnRenderedView($formView);
-     }
+    }
      
     protected function saveEntryAction()
     {
-        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'save', array("id"=>$this->request->getInt("id"), "configuration" => $this->listConfig, "userId"=>\lw_in_auth::getInstance()->getUserdata("id")), array('postArray'=>$this->request->getPostArray(), 'opt1file'=>$this->request->getFileData('opt1file')));
-        if ($response->getParameterByKey("error")) {
-            return $this->showEditEntryFormAction($response->getDataByKey("error"));
+        if ($this->isAdmin()) {
+            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'save', array("id"=>$this->request->getInt("id"), "configuration" => $this->listConfig, "userId"=>\lw_in_auth::getInstance()->getUserdata("id")), array('postArray'=>$this->request->getPostArray(), 'opt1file'=>$this->request->getFileData('opt1file')));
+            if ($response->getParameterByKey("error")) {
+                return $this->showEditEntryFormAction($response->getDataByKey("error"));
+            }
+            return $this->buildReloadResponse(array("cmd"=>"showEditEntryForm", "id" => $this->request->getInt("id")));
         }
-        return $this->buildReloadResponse(array("cmd"=>"showList"));
-    }
-    
-    protected function deleteEntryThumbnailAction()
-    {
-       if ($this->listRights->isWriteAllowed()) {
-           $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'deleteThumbnail', array("id"=>$this->request->getInt("id")), array());
-           if ($response->getParameterByKey("error")) {
-               return $this->showEditEntryFormAction($response->getDataByKey("error"));
-           }
-           return $this->buildReloadResponse(array("cmd"=>"showList", "reloadParent"=>1));
-       }
     }
      
     protected function showAddFormAction($error=false)
     {
-        $formView = new \LwEvents\View\EntryForm("add");
-        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityFromPostArray', array(), array("postArray"=>$this->request->getPostArray()));
-        $formView->setConfiguration($this->listConfig);
-        $formView->setEntity($response->getDataByKey('EntryEntity'));
-        $formView->setErrors($error);
-        return $this->returnRenderedView($formView);
+        if ($this->isAdmin()) {
+            $formView = new \LwEvents\View\EntryForm("add");
+            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityFromPostArray', array(), array("postArray"=>$this->request->getPostArray()));
+            $formView->setConfiguration($this->listConfig);
+            $formView->setEntity($response->getDataByKey('EntryEntity'));
+            $formView->setErrors($error);
+            return $this->returnRenderedView($formView);
+        }
     }
      
     protected function deleteLogoAction()
     {
-        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'deleteLogo', array("id"=>$this->request->getInt("id")));
-        return $this->buildReloadResponse(array("cmd"=>"showList"));
+        if ($this->isAdmin()) {
+            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'deleteLogo', array("id"=>$this->request->getInt("id")));
+            return $this->buildReloadResponse(array("cmd"=>"showList"));
+        }
     }
 
     protected function deleteEntryAction()
     {
-       if ($this->listRights->isWriteAllowed()) {
-           $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'delete', array("id"=>$this->request->getInt("id")));
-           return $this->buildReloadResponse(array("cmd"=>"showList"));
-       }
+        if ($this->isAdmin()) {
+            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'delete', array("id"=>$this->request->getInt("id")));
+            return $this->buildReloadResponse(array("cmd"=>"showList"));
+        }
     }
 }

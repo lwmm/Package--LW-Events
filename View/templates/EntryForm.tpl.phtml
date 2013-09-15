@@ -1,4 +1,8 @@
 <style>
+    #containerCms, #containerMainText, #containerExt, #containerTeasertext{display: none;}
+</style>
+<?php if($this->usecss): ?>
+<style>
     a.button{
         padding: 0 10px;
         background-color: #F57912;
@@ -26,8 +30,6 @@
     .formElement #cmslink{width: 50px;}
     
     .formElement #datepicker_show, .formElement #datepicker_show2{width: 80px;}
-
-    #containerCms, #containerMainText, #containerExt, #containerTeasertext{display: none;}
 
     #entryForm .error{
         background-color: darkred;
@@ -76,6 +78,7 @@
         max-height: 110px;
     }
 </style>
+<?php endif; ?>
 <script>
     $(document).ready(function() {
         var icon = "<?php echo $this->mediaUrl; ?>pics/fatcow_icons/16x16_0180/calendar.png";
@@ -153,9 +156,21 @@
 <div id="entryForm">
     <h2 style="font-size:20px;"><?php echo $this->formTitle ?></h2>
     <div id="back">
-        <a href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"showList")); ?>"> zur&uuml;ck</a>
+        <a href="<?php 
+            if ($this->entity->getValueByKey("opt4number") < date("Ymd") && $this->entity->getValueByKey("opt4number")) {
+                echo \lw_page::getInstance()->getUrl(array("cmd"=>"showArchive", "year" => substr($this->entity->getValueByKey("opt2number"), 0, 4))); 
+            }
+            else {
+                echo \lw_page::getInstance()->getUrl(array("cmd"=>"showList")); 
+            }
+        ?>"> zur&uuml;ck</a>
     </div>
 
+    <?php if(is_array($this->errors)): ?>
+    <div class="alert page-error"><b>Es gibt Fehler!</b></div>
+    <?php endif; ?>    
+
+    
     <form action="<?php echo $this->actionUrl; ?>" method="POST" ENCTYPE="multipart/form-data">
 
         <div>
@@ -171,14 +186,17 @@
             </div>
         </div>
         <div style="clear:both;">&nbsp;</div>
+        <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2number']); ?>
         <div class="formElement" >
             <label for="headline1">&Uuml;berschrift:</label><br>
             <input id="headline1" class="text" type="text" name="opt1text" value="<?php echo $this->entity->getValueByKey("opt1text"); ?>">
+            <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1text']); ?>
         </div>
 
         <div class="formElement">
             <label for="headline2">Ort:</label><br>
             <input id="headline2" class="text" type="text" name="opt2text" value="<?php echo $this->entity->getValueByKey("opt2text"); ?>">
+            <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2text']); ?>
         </div>
         
         <!-- Logo -->
@@ -215,22 +233,26 @@
 
             <label for="mainText">Text:</label><br>
             <textarea id="mainText" class="text mceEditor" name="opt1clob"><?php echo $this->entity->getValueByKey("opt1clob"); ?></textarea><br>
+            <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1clob']); ?>
         </div>
 
         <div id="containerTeasertext" class="formElement">
             <label for="link">Teasertext:</label><br>
             <textarea id="teasertext" class="text mceEditor" type="text" name="opt2clob"><?php echo $this->entity->getValueByKey("opt2clob"); ?></textarea>
+            <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2clob']); ?>
         </div>
         
         <div id="containerCms" class="formElement">
             <label for="link">Seiten Id:</label><br>
             <span>Soll auf eine Seite im CMS verwiesen werden, so ist hier die Indexnr. einzutragen.</span><br>
             <input id="cmslink" class="text" type="text" name="opt1number" value="<?php echo $this->entity->getValueByKey("opt1number"); ?>" >
+            <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1number']); ?>
         </div>
 
         <div id="containerExt" class="formElement">
             <label for="link">Url:</label><br>
             <input id="extlink" class="text" type="text" name="opt3text" value="<?php echo $this->entity->getValueByKey("opt3text"); ?>" >
+            <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt3text']); ?>
         </div>
 
         <input type="hidden" name="sent" value="1">

@@ -21,7 +21,7 @@
 
 namespace LwEvents\View;
 
-class EntryList extends \LWmvc\View\View
+class TeaserList extends \LWmvc\View\View
 {
 
     public function __construct()
@@ -29,9 +29,7 @@ class EntryList extends \LWmvc\View\View
         parent::__construct('edit');
         $this->dic = new \LwEvents\Services\dic();
         $this->systemConfiguration = $this->dic->getConfiguration();
-        $this->auth = $this->dic->getLwAuth();
-        $this->inAuth = $this->dic->getLwInAuth();
-        $this->view = new \lw_view(dirname(__FILE__) . '/templates/EntryList.tpl.phtml');
+        $this->view = new \lw_view(dirname(__FILE__) . '/templates/TeaserList.tpl.phtml');
     }
 
     public function setConfiguration($configuration)
@@ -39,20 +37,15 @@ class EntryList extends \LWmvc\View\View
         $this->configuration = $configuration;
     }
 
-    public function setListId($id)
-    {
-        $this->listId = $id;
-    }
-
     public function render()
     {
-        $this->view->addUrl = \lw_page::getInstance()->getUrl(array("cmd"=>"showAddForm"));
-        $this->view->admin = true;
         $this->view->configuration = $this->configuration;
         $this->view->lang = $this->configuration->getValueByKey("language");
         $this->view->usecss = $this->configuration->getValueByKey("usecss");
+        $this->view->calendar = $this->configuration->getValueByKey("calendar");
+        $this->view->teaserelements = $this->configuration->getValueByKey("teaserelements");
+        $this->view->mediaUrl = $this->systemConfiguration['url']['media'];
+        $this->view->baseUrlWithoutIndex = $this->systemConfiguration['url']['client'].'index.php?index=';
         return $this->view->render();
     }
-
 }
-

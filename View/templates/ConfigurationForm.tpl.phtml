@@ -98,6 +98,21 @@ $(document).ready(function(){
                     </select>
                 </div>
             </div>
+            
+            <div class="control-group">
+                <label class="control-label" for="usecss">CSS verwenden ?</label>
+                <div class="controls">
+                    <input type="checkbox" id="usecss" name="usecss" value="1" <?php if ($this->entity->getValueByKey('usecss')): ?> checked="checked" <?php endif; ?> >
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label" for="adminmode">Adminmode ?</label>
+                <div class="controls">
+                    <input type="checkbox" id="adminmode" name="adminmode" value="1" <?php if ($this->entity->getValueByKey('adminmode')): ?> checked="checked" <?php endif; ?> >
+                </div>
+            </div>
+            
             <hr>
             <div class="description"><b>Layout der Teaseransicht ist nur f&uuml;r den Teaserbereich optimiert!</b></div>
             <div class="control-group">
