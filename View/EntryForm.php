@@ -16,6 +16,11 @@ class EntryForm extends \LWmvc\View\View
         $this->view = new \lw_view(dirname(__FILE__).'/templates/EntryForm.tpl.phtml');
     }
 
+    public function setOldEntity($entity)
+    {
+        $this->view->oldEntity = $entity;
+    }
+    
     public function setConfiguration($configuration)
     {
         $this->configuration = $configuration;
@@ -26,11 +31,11 @@ class EntryForm extends \LWmvc\View\View
         $this->view->mediaUrl = $this->systemConfiguration['url']['media'];
         if ($this->view->entity->getId()<1) {
             $this->view->actionUrl = \lw_page::getInstance()->getUrl(array("cmd"=>"addEntry"));
-            $this->view->formTitle = "New Date";
+            $this->view->formtype = "new";
         }
         else {
             $this->view->actionUrl = \lw_page::getInstance()->getUrl(array("cmd"=>"saveEntry", "id"=>$this->view->entity->getId()));
-            $this->view->formTitle = "Edit Date";
+            $this->view->formtype = "edit";
         }
         
         $this->view->lang = $this->configuration->getValueByKey("language");

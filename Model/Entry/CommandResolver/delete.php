@@ -7,7 +7,7 @@ class delete extends \LWmvc\Model\CommandResolver
     public function __construct($command)
     {
         parent::__construct($command);
-        $this->dic = new \LwListtool\Services\dic();
+        $this->dic = new \LwEvents\Services\dic();
         $this->baseNamespace = "\\LwEvents\\Model\\Entry\\";
         $this->ObjectClass = $this->baseNamespace."Object\\entry";
     }

@@ -63,6 +63,30 @@ class isValid extends \LWmvc\Model\Validator
         return $valid;
     }
 
+    public function opt1fileValidate($key, $object)
+    {
+        $ok = true;
+        $array = $object->getValueByKey($key);
+        if (!$array['name']) {
+            return true;
+        }
+        if ($array['size'] > $this->maxfilesize) {
+            $this->addError($key, "lwmvc_17", array("maxsize"=> $this->maxfilesize, "actualsize"=>$array['size']));
+            $ok = false;
+        }
+        $extlist = '.jpg,.jpeg,.gif,.png';
+        $ext = \lw_io::getFileExtension($array['name']);
+        $extarray_u = explode(",", $extlist);
+        foreach($extarray_u as $singleext) {
+            $extarray[] = strtolower(trim($singleext));
+        }
+        if (!in_array('.'.strtolower($ext), $extarray)) {
+            $this->addError($key, "lwmvc_12");
+            $ok = false;
+        }
+        return $ok;
+    }
+        
     public function opt1textValidate($key, $object)
     {
         $value = trim($object->getValueByKey($key));

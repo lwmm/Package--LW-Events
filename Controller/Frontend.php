@@ -149,16 +149,20 @@ class Frontend extends \LWmvc\Controller\Controller
      protected function showEditEntryFormAction($error=false)
      {
         if ($this->isAdmin()) {
+            $formView = new \LwEvents\View\EntryForm('edit');
+
             if ($error) {
+                $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityById', array("id"=>$this->request->getInt("id"), "listId"=>$this->getContentObjectId()));
+                $formView->setOldEntity($response->getDataByKey('EntryEntity'));
                 $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityFromPostArray', array(), array("postArray"=>$this->request->getPostArray()));
             }
             else {
                 $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityById', array("id"=>$this->request->getInt("id"), "listId"=>$this->getContentObjectId()));
+                $formView->setOldEntity($response->getDataByKey('EntryEntity'));
             }
             $entity = $response->getDataByKey('EntryEntity');
             $entity->setId($this->request->getInt("id"));
-
-            $formView = new \LwEvents\View\EntryForm('edit');
+            
             $formView->setEntity($entity);
             $formView->setConfiguration($this->listConfig);
             $formView->setErrors($error);
@@ -184,6 +188,7 @@ class Frontend extends \LWmvc\Controller\Controller
             $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityFromPostArray', array(), array("postArray"=>$this->request->getPostArray()));
             $formView->setConfiguration($this->listConfig);
             $formView->setEntity($response->getDataByKey('EntryEntity'));
+            $formView->setOldEntity($response->getDataByKey('EntryEntity'));
             $formView->setErrors($error);
             return $this->returnRenderedView($formView);
         }
@@ -193,7 +198,7 @@ class Frontend extends \LWmvc\Controller\Controller
     {
         if ($this->isAdmin()) {
             $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'deleteLogo', array("id"=>$this->request->getInt("id")));
-            return $this->buildReloadResponse(array("cmd"=>"showList"));
+            return $this->buildReloadResponse(array("cmd"=>"showEditEntryForm", "id" => $this->request->getInt("id")));
         }
     }
 

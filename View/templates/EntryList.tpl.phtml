@@ -130,7 +130,7 @@ function lwEventGetImageWidth($config, $entry)
         </a>
     </div>
     <div style="margin-left:10px; margin-top:10px;">
-        Archivjahr: <select id="archiveYear">
+        <?php if ($this->lang == "en"): ?>Year<?php else: ?>Archivjahr<?php endif; ?>: <select id="archiveYear">
             <?php foreach($this->availableYears as $year => $active): ?>
             <option value="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showArchive", "year"=>$year)); ?>" <?php if($this->year == $year): ?> selected="selected"<?php endif; ?>><?php echo $year; ?>&nbsp;&nbsp;</option>
             <?php endforeach; ?>
@@ -150,8 +150,8 @@ function lwEventGetImageWidth($config, $entry)
         <div class="item">
             <?php if ($this->admin) : ?>
                 <div class="button_menu">
-                    <a class="menu" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"deleteEntry", "id" => $entry->getValueByKey('id'))); ?>" onclick="return confirm('Diesen Eintrag wirklich l&ouml;schen ?');">l&ouml;schen</a>
-                    <a class="menu" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"showEditEntryForm", "id" => $entry->getValueByKey('id'))); ?>">bearbeiten</a>
+                    <a class="menu" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"deleteEntry", "id" => $entry->getValueByKey('id'))); ?>" onclick="return confirm('Diesen Eintrag wirklich l&ouml;schen ?');"><?php if ($this->lang == "en"): ?>delete<?php else: ?>l&ouml;schen<?php endif; ?></a>
+                    <a class="menu" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"showEditEntryForm", "id" => $entry->getValueByKey('id'))); ?>"><?php if ($this->lang == "en"): ?>edit<?php else: ?>bearbeiten<?php endif; ?></a>
                 </div>
             <?php endif; ?>
             <?php if ($entry->getValueByKey("opt1file")) : ?>

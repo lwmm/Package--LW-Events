@@ -154,7 +154,24 @@
 </script>
 
 <div id="entryForm">
-    <h2 style="font-size:20px;"><?php echo $this->formTitle ?></h2>
+    <h2 style="font-size:20px;"><?php 
+        if ($this->formtype =="new") {
+            if ($this->lang == "en") {
+                echo "New Event";
+            } 
+            else {
+                echo "Neue Veranstaltung";
+            }
+        }
+        else {
+            if ($this->lang == "en") {
+                echo "Edit Event";
+            } 
+            else {
+                echo "Veranstaltung bearbeiten";
+            }
+        }
+    ?></h2>
     <div id="back">
         <a href="<?php 
             if ($this->entity->getValueByKey("opt4number") < date("Ymd") && $this->entity->getValueByKey("opt4number")) {
@@ -163,11 +180,11 @@
             else {
                 echo \lw_page::getInstance()->getUrl(array("cmd"=>"showList")); 
             }
-        ?>"> zur&uuml;ck</a>
+        ?>"> <?php if ($this->lang == "en"): ?>back<?php else: ?>zur&uuml;ck<?php endif; ?></a>
     </div>
 
     <?php if(is_array($this->errors)): ?>
-    <div class="alert page-error"><b>Es gibt Fehler!</b></div>
+    <div class="alert page-error"><b><?php if ($this->lang == "en"): ?>Errors occured!<?php else: ?>Es gibt Fehler!<?php endif; ?></b></div>
     <?php endif; ?>    
 
     
@@ -177,12 +194,12 @@
         
         <div>
             <div class="formElement datepicker" style="float:left">
-                <label for="datepicker">Datum:<span>(von)</span></label><br>
+                <label for="datepicker"><?php if ($this->lang == "en"): ?>Date:<span>(Start)</span><?php else: ?>Datum:<span>(von)</span><?php endif; ?></label><br>
                 <input id="datepicker_show" class="text" type="text" value="" disabled>
                 <input id="datepicker" class="text" type="hidden" name="opt2number" value="">
             </div>
             <div id="dateto" class="formElement datepicker">
-                <label for="datepicker">Datum:<span>(bis)</span></label><br>
+                <label for="datepicker"><?php if ($this->lang == "en"): ?>Date:<span>(End)</span><?php else: ?>Datum:<span>(bis)</span><?php endif; ?></label><br>
                 <input id="datepicker_show2" class="text" type="text" value="" disabled>
                 <input id="datepicker2" class="text" type="hidden" name="opt4number" value="">
             </div>
@@ -193,7 +210,7 @@
         <!-- Überschrift -->
         
         <div class="formElement" >
-            <label for="headline1">&Uuml;berschrift:</label><br>
+            <label for="headline1"><?php if ($this->lang == "en"): ?>Headline<?php else: ?>&Uuml;berschrift<?php endif; ?>:</label><br>
             <input id="headline1" class="text" type="text" name="opt1text" value="<?php echo $this->entity->getValueByKey("opt1text"); ?>">
             <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1text']); ?>
         </div>
@@ -201,7 +218,7 @@
         <!-- Ort -->
 
         <div class="formElement">
-            <label for="headline2">Ort:</label><br>
+            <label for="headline2"><?php if ($this->lang == "en"): ?>Place<?php else: ?>Ort<?php endif; ?>:</label><br>
             <input id="headline2" class="text" type="text" name="opt2text" value="<?php echo $this->entity->getValueByKey("opt2text"); ?>">
             <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2text']); ?>
         </div>
@@ -210,30 +227,31 @@
 
         <div class="formElement">
             <div id="uploadedFile">
-                <h3>Hochgeladene Datei: <?php if(!$this->entity->getValueByKey("opt1file")) :?><span>keine</span><?php endif; ?></h3>
-                <?php if($this->entity->getValueByKey("opt1file")) :?>
+                <h3><?php if ($this->lang == "en"): ?>Uploaded Logo File (only .gif, .jpg and .png allowed)<?php else: ?>Hochgeladene Logodatei (nur .gif, .jpg und .png erlaubt)<?php endif; ?>: <?php if(!$this->entity->getValueByKey("opt1file")) :?><span><?php if ($this->lang == "en"): ?>none<?php else: ?>keines<?php endif; ?></span><?php endif; ?></h3>
+                <?php if($this->oldEntity->getValueByKey("opt1file")) :?>
                     <div>
-                        <a class="button" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"deleteLogo", "id"=>$this->entity->getValueByKey("id"))); ?>" onclick="return confirm('Logo wirklich l&ouml;schen ?');" >Logo l&ouml;schen</a>
+                        <a class="button" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"deleteLogo", "id"=>$this->entity->getValueByKey("id"))); ?>" onclick="return confirm('<?php if ($this->lang == "en"): ?>Do you really want to delete the Logo?<?php else: ?>Logo wirklich l&ouml;schen ?<?php endif; ?>');" ><?php if ($this->lang == "en"): ?>delete Logo<?php else: ?>Logo l&ouml;schen<?php endif; ?></a>
                     </div>
-                    <img class="events_logo" src="<?php echo $this->config['url']['resource']."lw_events/".$this->entity->getValueByKey("opt1file"); ?>">
+                    <img class="events_logo" src="<?php echo $this->config['url']['resource']."lw_events/".$this->oldEntity->getValueByKey("opt1file"); ?>">
                 <?php endif; ?>
             </div>
             <input class="upload" name="opt1file" type="file">
+            <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1file']); ?>
         </div>
         
         <!-- Termintyp -->
 
         <div class="formElement">
-            <h2>Bitte Termin-Eingabe w&auml;hlen:</h2>
+            <h2><?php if ($this->lang == "en"): ?>Choose description type<?php else: ?>Bitte Termin-Eingabe w&auml;hlen<?php endif; ?>:</h2>
 
             <input class="typetext" type="radio" id="typetext" value="1" name="opt5number" <?php if (!$this->entity->getValueByKey("opt5number") || $this->entity->getValueByKey("opt5number") == 1): ?> checked="checked" <?php endif; ?>>
-            <label class="typetext" for="typetext">Texteingabe</label><br/>
+            <label class="typetext" for="typetext"><?php if ($this->lang == "en"): ?>free text<?php else: ?>Texteingabe<?php endif; ?></label><br/>
 
             <input class="typecms" type="radio" id="typecms" value="2" name="opt5number" <?php if ($this->entity->getValueByKey("opt5number") == 2) : ?> checked="checked" <?php endif; ?>>
-            <label class="typecms" for="typecms">Verweis auf eine CMS-Seite</label><br>
+            <label class="typecms" for="typecms"><?php if ($this->lang == "en"): ?>link to internal cms page<?php else: ?>Verweis auf eine CMS-Seite<?php endif; ?></label><br>
 
             <input class="typeext" type="radio" id="typeext" value="3" name="opt5number" <?php if ($this->entity->getValueByKey("opt5number") == 3) : ?> checked="checked" <?php endif; ?>>
-            <label class="typeext" for="typeext">Verweis auf eine externe Seite</label>
+            <label class="typeext" for="typeext"><?php if ($this->lang == "en"): ?>link to external page<?php else: ?>Verweis auf eine externe Seite<?php endif; ?></label>
         </div>
 
         <!-- Text -->
@@ -255,8 +273,8 @@
         <!-- Seitenindex -->
 
         <div id="containerCms" class="formElement">
-            <label for="link">Seiten Id:</label><br>
-            <span>Soll auf eine Seite im CMS verwiesen werden, so ist hier die Indexnr. einzutragen.</span><br>
+            <label for="link"><?php if ($this->lang == "en"): ?>Page Id<?php else: ?>Seiten Id<?php endif; ?>:</label><br>
+            <span><?php if ($this->lang == "en"): ?>enter internal CMS page ID number<?php else: ?>Soll auf eine Seite im CMS verwiesen werden, so ist hier die Indexnr. einzutragen.<?php endif; ?></span><br>
             <input id="cmslink" class="text" type="text" name="opt1number" value="<?php echo $this->entity->getValueByKey("opt1number"); ?>" >
             <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1number']); ?>
         </div>
@@ -272,7 +290,7 @@
         <!-- Submit Button -->
         
         <div id="formButtons">
-            <input type="submit" value="speichern">
+            <input type="submit" value="<?php if ($this->lang == "en"): ?>save<?php else: ?>speichern<?php endif; ?>">
         </div>
         
     </form>
