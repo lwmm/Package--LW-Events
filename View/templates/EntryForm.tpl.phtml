@@ -173,25 +173,32 @@
     
     <form action="<?php echo $this->actionUrl; ?>" method="POST" ENCTYPE="multipart/form-data">
 
+        <!-- Datum von bis -->
+        
         <div>
             <div class="formElement datepicker" style="float:left">
                 <label for="datepicker">Datum:<span>(von)</span></label><br>
-                <input id="datepicker_show" class="text" type="text" value="">
+                <input id="datepicker_show" class="text" type="text" value="" disabled>
                 <input id="datepicker" class="text" type="hidden" name="opt2number" value="">
             </div>
             <div id="dateto" class="formElement datepicker">
                 <label for="datepicker">Datum:<span>(bis)</span></label><br>
-                <input id="datepicker_show2" class="text" type="text" value="">
+                <input id="datepicker_show2" class="text" type="text" value="" disabled>
                 <input id="datepicker2" class="text" type="hidden" name="opt4number" value="">
             </div>
         </div>
         <div style="clear:both;">&nbsp;</div>
         <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2number']); ?>
+        
+        <!-- Überschrift -->
+        
         <div class="formElement" >
             <label for="headline1">&Uuml;berschrift:</label><br>
             <input id="headline1" class="text" type="text" name="opt1text" value="<?php echo $this->entity->getValueByKey("opt1text"); ?>">
             <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1text']); ?>
         </div>
+
+        <!-- Ort -->
 
         <div class="formElement">
             <label for="headline2">Ort:</label><br>
@@ -200,7 +207,7 @@
         </div>
         
         <!-- Logo -->
-        
+
         <div class="formElement">
             <div id="uploadedFile">
                 <h3>Hochgeladene Datei: <?php if(!$this->entity->getValueByKey("opt1file")) :?><span>keine</span><?php endif; ?></h3>
@@ -214,8 +221,8 @@
             <input class="upload" name="opt1file" type="file">
         </div>
         
-        
-        
+        <!-- Termintyp -->
+
         <div class="formElement">
             <h2>Bitte Termin-Eingabe w&auml;hlen:</h2>
 
@@ -229,19 +236,24 @@
             <label class="typeext" for="typeext">Verweis auf eine externe Seite</label>
         </div>
 
-        <div id="containerMainText" class="formElement">
+        <!-- Text -->
 
+        <div id="containerMainText" class="formElement">
             <label for="mainText">Text:</label><br>
             <textarea id="mainText" class="text mceEditor" name="opt1clob"><?php echo $this->entity->getValueByKey("opt1clob"); ?></textarea><br>
             <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1clob']); ?>
         </div>
 
+        <!-- Teasertext -->
+        
         <div id="containerTeasertext" class="formElement">
             <label for="link">Teasertext:</label><br>
             <textarea id="teasertext" class="text mceEditor" type="text" name="opt2clob"><?php echo $this->entity->getValueByKey("opt2clob"); ?></textarea>
             <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2clob']); ?>
         </div>
         
+        <!-- Seitenindex -->
+
         <div id="containerCms" class="formElement">
             <label for="link">Seiten Id:</label><br>
             <span>Soll auf eine Seite im CMS verwiesen werden, so ist hier die Indexnr. einzutragen.</span><br>
@@ -249,17 +261,20 @@
             <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1number']); ?>
         </div>
 
+        <!-- Target URL -->
+
         <div id="containerExt" class="formElement">
             <label for="link">Url:</label><br>
             <input id="extlink" class="text" type="text" name="opt3text" value="<?php echo $this->entity->getValueByKey("opt3text"); ?>" >
             <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt3text']); ?>
         </div>
 
-        <input type="hidden" name="sent" value="1">
-
+        <!-- Submit Button -->
+        
         <div id="formButtons">
             <input type="submit" value="speichern">
         </div>
+        
     </form>
 
 </div>

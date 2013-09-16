@@ -29,7 +29,7 @@ class ArchiveList extends \LWmvc\View\View
         $this->dic = new \LwEvents\Services\dic();
         $this->systemConfiguration = $this->dic->getConfiguration();
         $this->auth = $this->dic->getLwAuth();
-        $this->view = new \lw_view(dirname(__FILE__) . '/templates/ArchiveList.tpl.phtml');
+        $this->view = new \lw_view(dirname(__FILE__) . '/templates/EntryList.tpl.phtml');
     }
 
     public function setConfiguration($configuration)
@@ -49,6 +49,7 @@ class ArchiveList extends \LWmvc\View\View
 
     public function render()
     {
+        $this->view->archiveView = true;
         $this->view->addUrl = \lw_page::getInstance()->getUrl(array("cmd"=>"showAddForm"));
         $this->view->admin = true;
         $this->view->listId = $this->listId;

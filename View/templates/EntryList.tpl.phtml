@@ -1,3 +1,51 @@
+<?php 
+
+function lwEventPrepareEntryTextAndMoreLink($entry)
+{
+    if ($entry->getValueByKey("opt5number" == 3)) {
+        $array['text'] = $entry->getValueByKey("opt2clob");
+        $array['targeturl'] = $entry->getValueByKey("opt3text");
+    }
+
+    if ($entry->getValueByKey("opt5number") == 2) {
+        $array['text'] = $entry->getValueByKey("opt2clob");
+        $array['targeturl'] = lw_page::getInstance($entry->getValueByKey("opt1number"))->getUrl();
+    }
+
+    if ($entry->getValueByKey("opt5number") == 1) {
+        if (strlen($entry->getValueByKey("opt1clob")) > 250) {
+            $array['text'] = substr(striptags($entry->getValueByKey("opt1clob")), 0, 250).'...';
+        }
+        else {
+            $array['text'] = $entry->getValueByKey("opt1clob");
+        }
+        $array['targeturl'] = lw_page::getInstance()->getUrl(array("cmd"=>"showDetail", "id"=>$entry->getValueByKey("id")));
+    }
+    return $array;
+}
+
+function lwEventGetDateOutput($entry)
+{
+    $date2 = "";
+    if ($entry->getValueByKey("opt4number") != $entry->getValueByKey("opt2number")) {
+        $date2 = ' - '.lw_object::formatDate($entry->getValueByKey('opt4number'));
+    }
+    return lw_object::formatDate($entry->getValueByKey('opt2number')).$date2;
+}
+
+function lwEventGetImageWidth($config, $entry)
+{
+    list($width) = getimagesize($config['path']['resource'].'lw_events'."/".$entry->getValueByKey("opt1file"));
+    if ($width < 170) {
+        $div_width = 300 + (170 - $width);
+    }
+    else {
+        $div_width = 300;
+    }
+    return $div_width;
+}
+
+?>
 <?php if($this->usecss): ?>
 <style>
     .clearfix:after {
@@ -62,10 +110,36 @@
     }
 </style>
 <?php endif; ?>
+<?php if($this->archiveView): ?>
+<script type="text/javascript">
+    $(document).ready(function(){
+        
+        $('select#archiveYear').change(function(){
+            document.location.href = $("#archiveYear").val();
+        });
+
+    });
+</script>
+<div id="paging">
+    <div>
+        <a class="menu" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showList")); ?>">
+        <?php if ($this->lang == "en"): ?>back to actual events<?php else: ?>zur&uuml;ck zu den aktuellen Eintr&auml;gen<?php endif; ?>
+        </a>
+    </div>
+    <div>
+        <select id="archiveYear">
+            <?php foreach($this->availableYears as $year => $active): ?>
+            <option value="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showArchive", "year"=>$year)); ?>" <?php if($this->year == $year): ?> selected="selected"<?php endif; ?>><?php echo $year; ?>&nbsp;&nbsp;</option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+</div>
+<?php else: ?>
 <?php if ($this->admin) : ?>
     <div class="add">
         <a class="menu" href="<?php echo $this->addUrl; ?>"><?php if ($this->lang == "en"): ?>add new event<?php else: ?>neuen Termin anlegen<?php endif; ?></a>
     </div>
+<?php endif; ?>
 <?php endif; ?>
 
 <?php if ($this->collection->count() > 0) : ?>
@@ -78,75 +152,27 @@
                 </div>
             <?php endif; ?>
             <?php if ($entry->getValueByKey("opt1file")) : ?>
-                <?php
-                list($width) = getimagesize($this->config['path']['resource'].'lw_events'."/".$entry->getValueByKey("opt1file"));
-                if ($width < 170) {
-                    $div_width = 300 + (170 - $width);
-                }
-                else{
-                    $div_width = 300;
-                }
-                ?>
                 <div class="clearfix">
                     <img class="events_logo" src="<?php echo $this->config['url']['resource'].'lw_events/'.$entry->getValueByKey("opt1file"); ?>" >
-                    <div style="float:left;width: <?php echo $div_width; ?>px;">
-                        <div>
-                            <?php
-                            $date2 = "";
-                            if ($entry->getValueByKey("opt4number") != $entry->getValueByKey("opt2number")) {
-                                $date2 = ' - '.$this->formatDate($entry->getValueByKey('opt4number'));
-                            }
-                            echo $this->formatDate($entry->getValueByKey('opt2number')).$date2;
-                            ?>
+                    <div style="float:left;width: <?php echo lwEventGetImageWidth($this->config, $entry); ?>px;">
+            <?php endif; ?>                        
+                        <div class="events_date">
+                            <?php  echo lwEventGetDateOutput($entry); ?>
                         </div>
                         <h1><?php echo $entry->getValueByKey("opt1text"); ?></h1>
                         <h2><?php echo $entry->getValueByKey("opt2text"); ?></h2>
+            <?php if ($entry->getValueByKey("opt1file")) : ?>
                     </div>
                 </div>
-            <?php else: ?>
-                <div>
-                    <?php
-                    $date2 = "";
-                    if ($entry->getValueByKey("opt4number") != $entry->getValueByKey("opt2number")) {
-                        $date2 = ' - '.$this->formatDate($entry->getValueByKey('opt4number'));
-                    }
-                    echo $this->formatDate($entry->getValueByKey('opt2number')).$date2;
-                    ?>
-                </div>
-                <h1><?php echo $entry->getValueByKey("opt1text"); ?></h1>
-                <h2><?php echo $entry->getValueByKey("opt2text"); ?></h2>
             <?php endif; ?>
 
             <div>
                 <p>
-                    <?php
-                    if ($this->lang == "en") {
-                        $more = "more";
-                    }
-                    else {
-                        $more = "mehr";
-                    }
-                    if ($entry->getValueByKey("opt5number" == 3)) {
-                        echo $entry->getValueByKey("opt2clob");
-                        echo "...[<a class=\"extern\" target=\"_blank\" href=\"" . $entry->getValueByKey("opt3text") . "\">" . $more . "</a>]";
-                    }
-
-                    if ($entry->getValueByKey("opt5number") == 2) {
-                        echo $entry->getValueByKey("opt2clob");
-                        echo "...[<a class=\"intern\" target=\"_blank\" href=\"".lw_page::getInstance($entry->getValueByKey("opt1number"))->getUrl()."\">" . $more . "</a>]";
-                    }
-
-                    if ($entry->getValueByKey("opt5number") == 1) {
-                        $str = "";
-                        if (strlen($entry->getValueByKey("opt1clob")) > 250) {
-                            $str = substr($entry->getValueByKey("opt1clob"), 0, 250);
-                        }
-                        else {
-                            echo $entry->getValueByKey("opt1clob");
-                        }
-                        echo $str . "...[<a class=\"intern\" href=\"".lw_page::getInstance()->getUrl(array("cmd"=>"showDetail", "id"=>$entry->getValueByKey("id")))."\">" . $more . "</a>]";
-                    }
-                    ?></p>
+                    <?php 
+                        $array = lwEventPrepareEntryTextAndMoreLink($entry); 
+                        echo $array['text']; ?>
+                    [<a class="extern" target="_blank" href="<?php echo $array['targeturl']; ?>"><?php if ($this->lang == "en"): ?>more<?php else: ?>mehr<?php endif; ?></a>]
+                </p>
             </div>
         </div>
     <?php endforeach; ?>
@@ -157,17 +183,10 @@
         </div>
     </div>
 <?php endif; ?>
+<?php if(!$this->archiveView): ?>
 <div id="paging">
     <a class="menu" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showArchive")); ?>">
-        <?php
-        if ($this->lang == "en") {
-            $gotToArchive = "go to archive";
-        }
-        else {
-            $gotToArchive = "zum Archiv";
-        }
-
-        echo $gotToArchive;
-        ?>
+        <?php if ($this->lang == "en"): echo "go to archive"; else: echo "zum Archiv"; endif; ?>
     </a>
 </div>
+<?php endif; ?>

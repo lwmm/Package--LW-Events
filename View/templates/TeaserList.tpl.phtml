@@ -1,3 +1,13 @@
+<?php
+function lwEventGetDateOutputTeaser($entry)
+{
+    $date2 = "";
+    if ($entry->getValueByKey("opt4number") != $entry->getValueByKey("opt2number")) {
+        $date2 = ' - '.lw_object::formatDate($entry->getValueByKey('opt4number'));
+    }
+    return lw_object::formatDate($entry->getValueByKey('opt2number')).$date2;
+}
+?>
 <?php if($this->usecss): ?>
 <style>
     #veranstaltungsteaser .veranstaltung{
@@ -80,7 +90,6 @@
                 <h1>HEADLINE</h1>
             </div>
         </div>
-
 
         <div class="yui-skin-sam">
             <div id="veranstaltungen">
@@ -228,22 +237,14 @@
 
         <?php foreach ($this->collection as $entry) : ?>
                     YAHOO.example.calendar.cal1.addRenderer("<?php
-                    $year = substr($entry->getValueByKey('opt2number'), 0, 4);
-                    $month = substr($entry->getValueByKey('opt2number'), 4, 2);
-                    $day = substr($entry->getValueByKey('opt2number'), 6, 2);
-
-            $date2 = "";
-            if ($entry->getValueByKey('opt4number')) {
-                $year2 = substr($entry->getValueByKey('opt4number'), 0, 4);
-                $month2 = substr($entry->getValueByKey('opt4number'), 4, 2);
-                $day2 = substr($entry->getValueByKey('opt4number'), 6, 2);
-
-                $date2 = ' - ' . $day2 . '.' . $month2 . '.' . $year2;
-            }
-            else {
-                $date2 = "-" . $day . '.' . $month . '.' . $year;
-            }
-            echo $day . '.' . $month . '.' . $year . $date2;
+                    $date2 = "";
+                    if ($entry->getValueByKey("opt4number")) {
+                        $date2 = ' - '.$this->formatDate($entry->getValueByKey('opt4number'));
+                    }
+                    else {
+                        $date2 = ' - '.$this->formatDate($entry->getValueByKey('opt2number'));
+                    }
+                    echo $this->formatDate($entry->getValueByKey('opt2number')).$date2;
             ?>", YAHOO.example.calendar.cal1.renderCellStyleHighlight1);
         <?php endforeach; ?>
                 YAHOO.example.calendar.cal1.render();
@@ -256,20 +257,17 @@
         
             <?php endif; #CALENDAR ENDIF?>
         
-<?php if ($this->collection->count()>0) : 
-foreach ($this->collection as $entry):
-    $nextdate = $this->formatDate($entry->getValueByKey('opt2number'));
-    break;
-endforeach;
-    
-    
-    ?>
-        
+<?php 
+if ($this->collection->count()>0) : 
+    foreach ($this->collection as $entry):
+        $nextdate = $this->formatDate($entry->getValueByKey('opt2number'));
+        break;
+    endforeach;
+?>
     <div id="termin">
-        <center><?php if ($this->lang == "en"): ?>next event:<?php else : ?>n&auml;chster Termin: <?php
-            endif;
-            echo $nextdate;
-            ?></center>
+        <center>
+            <?php if ($this->lang == "en"): ?>next event:<?php else : ?>n&auml;chster Termin: <?php endif; echo $nextdate; ?>
+        </center>
     </div>
 
     <div id="calendar_events_for_current_month">
@@ -281,36 +279,25 @@ endforeach;
                     $i++;
                 ?>
                 <div class="veranstaltung">
-                    <div class="lightblue">
-                        <?php
-                        if ($entry->getValueByKey('opt4number') != $entry->getValueByKey('opt2number')) {
-                            $date2 = ' - '.$this->formatDate($entry->getValueByKey('opt4number'));
-                        }
-                        echo $this->formatDate($entry->getValueByKey('opt2number')).$date2;
-                        ?>
-                    </div>
+                    <div class="lightblue"><?php echo lwEventGetDateOutputTeaser($entry) ?></div>
                     <div class="lightblue">
                             <?php echo $entry->getValueByKey('opt2text'); ?>
                     </div>
-                    <h1><?php echo $entry->getValueByKey('opt1text'); ?><span style="font-size: 11px;" >
+                    <h1><?php echo $entry->getValueByKey('opt1text'); ?><span class="lw_event_teaserlink">
                             <?php
-                            if ($this->lang == "en") {
-                                $more = "more";
-                            }
-                            else {
-                                $more = "mehr";
-                            }
                             if ($entry->getValueByKey("opt5number") == 3) {
-                                echo "...[<a class=\"extern\" target=\"_blank\" href=\"" . $entry->getValueByKey("opt3text") . "\">" . $more . "</a>]";
+                                $targetUrl = $entry->getValueByKey("opt3text");
+                                $class = "extern";
                             }
                             if ($entry->getValueByKey("opt5number") == 2) {
-                                echo "...[<a class=\"intern\" target=\"_blank\" href=\"".lw_page::getInstance($entry->getValueByKey("opt1number"))->getUrl()."\">" . $more . "</a>]";
+                                $targetUrl = lw_page::getInstance($entry->getValueByKey("opt1number"))->getUrl();
+                                $class = "intern";
                             }
-
                             if ($entry->getValueByKey("opt5number") == 1) {
-                                echo "...[<a class=\"intern\" href=\"".lw_page::getInstance()->getUrl(array("cmd"=>"showDetail", "id"=>$entry->getValueByKey("id")))."\">" . $more . "</a>]";
+                                $targetUrl = lw_page::getInstance()->getUrl(array("cmd"=>"showDetail", "id"=>$entry->getValueByKey("id")));
+                                $class = "intern";
                             }
-                            ?></span></h1>
+                            ?> [<a class="<?php echo $class; ?>" href="<?php echo $targetUrl; ?>"><?php if ($this->lang == "en"): ?>more<?php else: ?>mehr<?php endif; ?></a>]</span></h1>
                 </div>
     <?php 
     if ($i == $this->teaserelements) {

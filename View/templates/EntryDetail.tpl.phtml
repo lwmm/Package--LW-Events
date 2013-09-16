@@ -1,3 +1,23 @@
+<?php 
+function lwEventGetBackUrl($entry)
+{
+    if ($entry->getValueByKey("opt4number") < date("Ymd") && $entry->getValueByKey("opt4number")) {
+        return \lw_page::getInstance()->getUrl(array("cmd"=>"showArchive", "year" => substr($entry->getValueByKey("opt2number"), 0, 4))); 
+    }
+    else {
+        return \lw_page::getInstance()->getUrl(array("cmd"=>"showList")); 
+    }
+}
+
+function lwEventGetDateOutput($entry)
+{
+    $date2 = "";
+    if ($entry->getValueByKey("opt4number") != $entry->getValueByKey("opt2number")) {
+        $date2 = ' - '.lw_object::formatDate($entry->getValueByKey('opt4number'));
+    }
+    return lw_object::formatDate($entry->getValueByKey('opt2number')).$date2;
+}
+?>
 <?php if($this->usecss): ?>
 <style>
     .clearfix:after {
@@ -31,14 +51,7 @@
 </style>
 <?php endif; ?>
     <div id="back">
-        <a href="<?php 
-            if ($this->entity->getValueByKey("opt4number") < date("Ymd") && $this->entity->getValueByKey("opt4number")) {
-                echo \lw_page::getInstance()->getUrl(array("cmd"=>"showArchive", "year" => substr($this->entity->getValueByKey("opt2number"), 0, 4))); 
-            }
-            else {
-                echo \lw_page::getInstance()->getUrl(array("cmd"=>"showList")); 
-            }
-        ?>"> zur&uuml;ck</a>
+        <a href="<?php echo lwEventGetBackUrl($this->entity); ?>"> zur&uuml;ck</a>
     </div>
 
 <div class="item">
@@ -46,15 +59,7 @@
         <?php if ($this->entity->getValueByKey("opt1file")) : ?>
             <img class="events_logo" src="<?php echo $this->config['url']['resource']."lw_events/".$this->entity->getValueByKey("opt1file"); ?>" >
         <?php endif; ?>
-        <div class="events_date">
-            <?php
-            $date2 = "";
-            if ($this->entity->getValueByKey("opt4number") != $this->entity->getValueByKey("opt2number")) {
-                $date2 = ' - '.$this->formatDate($this->entity->getValueByKey('opt4number'));
-            }
-            echo $this->formatDate($this->entity->getValueByKey('opt2number')).$date2;
-            ?>
-        </div>
+        <div class="events_date"><?php echo lwEventGetDateOutput($this->entity); ?></div>
 
         <h1 class="events_headline"><?php echo $this->entity->getValueByKey("opt1text"); ?></h1>
         <h2 class="events_location"><?php echo $this->entity->getValueByKey("opt2text"); ?></h2>
