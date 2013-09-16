@@ -19,12 +19,7 @@ class EntryDetail extends \LWmvc\View\View
     
     public function render()
     {
-        if ($this->configuration->getValueByKey('language') == "de") {
-            $this->view->lang = "de";
-        }
-        else {
-            $this->view->lang = "en";
-        }
+        $this->view->lang = $this->configuration->getValueByKey("language");
         $this->view->usecss = $this->configuration->getValueByKey("usecss");
         return $this->view->render();
     }

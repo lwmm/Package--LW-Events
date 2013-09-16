@@ -297,7 +297,7 @@ if ($this->collection->count()>0) :
                                 $targetUrl = lw_page::getInstance()->getUrl(array("cmd"=>"showDetail", "id"=>$entry->getValueByKey("id")));
                                 $class = "intern";
                             }
-                            ?> [<a class="<?php echo $class; ?>" href="<?php echo $targetUrl; ?>"><?php if ($this->lang == "en"): ?>more<?php else: ?>mehr<?php endif; ?></a>]</span></h1>
+                            ?> [<a class="<?php echo $class; ?>" <?php if($class=="extern"): ?>target="_blank" <?php endif; ?>href="<?php echo $targetUrl; ?>"><?php if ($this->lang == "en"): ?>more<?php else: ?>mehr<?php endif; ?></a>]</span></h1>
                 </div>
     <?php 
     if ($i == $this->teaserelements) {

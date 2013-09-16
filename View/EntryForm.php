@@ -33,12 +33,7 @@ class EntryForm extends \LWmvc\View\View
             $this->view->formTitle = "Edit Date";
         }
         
-        if ($this->configuration->getValueByKey('language') == "de") {
-            $this->view->lang = "de";
-        }
-        else {
-            $this->view->lang = "en";
-        }
+        $this->view->lang = $this->configuration->getValueByKey("language");
         $this->view->usecss = $this->configuration->getValueByKey("usecss");
         $this->view->ValidationErrorViewHelper = new \LWmvc\View\Helper\ValidationErrorViewHelper($this->configuration->getValueByKey('language'));
         

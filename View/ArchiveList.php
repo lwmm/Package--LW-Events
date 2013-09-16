@@ -54,6 +54,7 @@ class ArchiveList extends \LWmvc\View\View
         $this->view->admin = true;
         $this->view->listId = $this->listId;
         $this->view->configuration = $this->configuration;
+        $this->view->lang = $this->configuration->getValueByKey("language");
         $this->view->usecss = $this->configuration->getValueByKey("usecss");
         return $this->view->render();
     }
