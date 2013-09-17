@@ -18,14 +18,16 @@ class QueryHandler extends \LWmvc\Model\DataQueryHandler
         $results = $this->db->pselect();
         foreach($results as $year) {
             $dummy = substr($year['opt2number'], 0, 4);
-            $array[$dummy] = 1;
+            if ($dummy <= date("Y")) {
+                $array[$dummy] = 1;
+            }
         }
         return $array;
     }
     
     public function loadArchivedEntriesByLanguageAndYear($language, $year)
     {
-        $this->db->setStatement('SELECT * FROM t:lw_master WHERE lw_object = :lw_object AND language = :language AND opt2number > :yearmin AND opt2number < :yearmax AND opt4number < :today ORDER BY opt2number ASC ');
+        $this->db->setStatement('SELECT * FROM t:lw_master WHERE lw_object = :lw_object AND language = :language AND opt2number > :yearmin AND opt2number < :yearmax AND opt4number < :today ORDER BY opt2number ASC, opt4number ASC ');
         $this->db->bindParameter("lw_object",   "s", "lw_events");
         $this->db->bindParameter("yearmin",     "s", $year.'0000');
         $this->db->bindParameter("yearmax",     "s", $year.'1300');
@@ -40,7 +42,7 @@ class QueryHandler extends \LWmvc\Model\DataQueryHandler
     
     public function loadAllActualEntries($lang)
     {
-        $this->db->setStatement('SELECT * FROM t:lw_master WHERE lw_object = :lw_object AND language = :language AND ( :date <= opt2number OR :date <= opt4number ) ORDER BY opt2number ASC ');
+        $this->db->setStatement('SELECT * FROM t:lw_master WHERE lw_object = :lw_object AND language = :language AND ( :date <= opt2number OR :date <= opt4number ) ORDER BY opt2number ASC, opt4number ASC ');
         $this->db->bindParameter("lw_object",   "s", "lw_events");
         $this->db->bindParameter("date",        "i", date("Ymd"));
         $this->db->bindParameter("language",    "s", $lang);

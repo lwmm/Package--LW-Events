@@ -123,20 +123,21 @@ function lwEventGetImageWidth($config, $entry)
 
     });
 </script>
-<div id="paging">
-    <div>
-        <a class="menu" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showList")); ?>">
-        <?php if ($this->lang == "en"): ?>back to actual events<?php else: ?>zur&uuml;ck zu den aktuellen Eintr&auml;gen<?php endif; ?>
-        </a>
+<div class="lwevents">
+    <div id="paging">
+        <div>
+            <a class="menu" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showList")); ?>">
+            <?php if ($this->lang == "en"): ?>back to actual events<?php else: ?>zur&uuml;ck zu den aktuellen Eintr&auml;gen<?php endif; ?>
+            </a>
+        </div>
+        <div style="margin-left:10px; margin-top:10px;">
+            <?php if ($this->lang == "en"): ?>Year<?php else: ?>Archivjahr<?php endif; ?>: <select id="archiveYear">
+                <?php foreach($this->availableYears as $year => $active): ?>
+                <option value="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showArchive", "year"=>$year)); ?>" <?php if($this->year == $year): ?> selected="selected"<?php endif; ?>><?php echo $year; ?>&nbsp;&nbsp;</option>
+                <?php endforeach; ?>
+            </select>
+        </div>
     </div>
-    <div style="margin-left:10px; margin-top:10px;">
-        <?php if ($this->lang == "en"): ?>Year<?php else: ?>Archivjahr<?php endif; ?>: <select id="archiveYear">
-            <?php foreach($this->availableYears as $year => $active): ?>
-            <option value="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showArchive", "year"=>$year)); ?>" <?php if($this->year == $year): ?> selected="selected"<?php endif; ?>><?php echo $year; ?>&nbsp;&nbsp;</option>
-            <?php endforeach; ?>
-        </select>
-    </div>
-</div>
 <?php else: ?>
 <?php if ($this->admin) : ?>
     <div class="add">
@@ -179,17 +180,19 @@ function lwEventGetImageWidth($config, $entry)
             </div>
         </div>
     <?php endforeach; ?>
-<?php else : ?>
-    <div class="item">
-        <div class="button_menu">
-            <p><?php if ($this->lang == "en"): ?>no events available<?php else: ?>keine Eintr&auml;ge vorhanden<?php endif; ?></p>
+    <?php else : ?>
+        <div class="item">
+            <div class="button_menu">
+                <p><?php if ($this->lang == "en"): ?>no events available<?php else: ?>keine Eintr&auml;ge vorhanden<?php endif; ?></p>
+            </div>
         </div>
+    <?php endif; ?>
+
+    <?php if(!$this->archiveView): ?>
+    <div id="paging">
+        <a class="menu" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showArchive")); ?>">
+            <?php if ($this->lang == "en"): echo "go to archive"; else: echo "zum Archiv"; endif; ?>
+        </a>
     </div>
-<?php endif; ?>
-<?php if(!$this->archiveView): ?>
-<div id="paging">
-    <a class="menu" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showArchive")); ?>">
-        <?php if ($this->lang == "en"): echo "go to archive"; else: echo "zum Archiv"; endif; ?>
-    </a>
+    <?php endif; ?>
 </div>
-<?php endif; ?>

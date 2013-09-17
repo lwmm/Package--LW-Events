@@ -50,22 +50,26 @@ function lwEventGetDateOutput($entry)
     }
 </style>
 <?php endif; ?>
+<div class="lwevents">
+    
     <div id="back">
-        <a href="<?php echo lwEventGetBackUrl($this->entity); ?>"> zur&uuml;ck</a>
+        <a href="<?php echo lwEventGetBackUrl($this->entity); ?>"> <?php if ($this->lang == "en"): ?>back<?php else: ?>zur&uuml;ck<?php endif; ?></a>
     </div>
 
-<div class="item">
-    <div class="clearfix">
-        <?php if ($this->entity->getValueByKey("opt1file")) : ?>
-            <img class="events_logo" src="<?php echo $this->config['url']['resource']."lw_events/".$this->entity->getValueByKey("opt1file"); ?>" >
-        <?php endif; ?>
-        <div class="events_date"><?php echo lwEventGetDateOutput($this->entity); ?></div>
+    <div class="item">
+        <div class="clearfix">
+            <?php if ($this->entity->getValueByKey("opt1file")) : ?>
+                <img class="events_logo" src="<?php echo $this->config['url']['resource']."lw_events/".$this->entity->getValueByKey("opt1file"); ?>" >
+            <?php endif; ?>
+            <div class="events_date"><?php echo lwEventGetDateOutput($this->entity); ?></div>
 
-        <h1 class="events_headline"><?php echo $this->entity->getValueByKey("opt1text"); ?></h1>
-        <h2 class="events_location"><?php echo $this->entity->getValueByKey("opt2text"); ?></h2>
+            <h1 class="events_headline"><?php echo $this->entity->getValueByKey("opt1text"); ?></h1>
+            <h2 class="events_location"><?php echo $this->entity->getValueByKey("opt2text"); ?></h2>
 
+        </div>
+        <div class="events_detailtext">
+            <p><?php echo $this->entity->getValueByKey("opt1clob"); ?></p>
+        </div>
     </div>
-    <div class="events_detailtext">
-        <p><?php echo $this->entity->getValueByKey("opt1clob"); ?></p>
-    </div>
-</div>
+    
+</div>    
