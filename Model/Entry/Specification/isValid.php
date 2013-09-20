@@ -107,11 +107,6 @@ class isValid extends \LWmvc\Model\Validator
     public function opt2textValidate($key, $object)
     {
         $value = trim($object->getValueByKey($key));
-               
-        if (!$value) {
-            $this->addError($key, 'lwmvc_4');
-            return false;
-        }
         
         $maxlength = 255;
         if (!$this->hasMaxlength($value, array("maxlength"=>$maxlength)) ) {

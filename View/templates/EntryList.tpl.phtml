@@ -113,17 +113,18 @@ function lwEventGetImageWidth($config, $entry)
     }
 </style>
 <?php endif; ?>
-<?php if($this->archiveView): ?>
-<script type="text/javascript">
-    $(document).ready(function(){
-        
-        $('select#archiveYear').change(function(){
-            document.location.href = $("#archiveYear").val();
-        });
+<div id="lwevents">
 
-    });
-</script>
-<div class="lwevents">
+    <?php if($this->archiveView): ?>
+    <script type="text/javascript">
+        $(document).ready(function(){
+
+            $('select#archiveYear').change(function(){
+                document.location.href = $("#archiveYear").val();
+            });
+
+        });
+    </script>
     <div id="paging">
         <div>
             <a class="menu" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showList")); ?>">
@@ -164,7 +165,7 @@ function lwEventGetImageWidth($config, $entry)
                             <?php  echo lwEventGetDateOutput($entry); ?>
                         </div>
                         <h1><?php echo $entry->getValueByKey("opt1text"); ?></h1>
-                        <h2><?php echo $entry->getValueByKey("opt2text"); ?></h2>
+                        <?php if(strlen($entry->getValueByKey("opt2text"))>0 && $entry->getValueByKey("opt2text") != "."): ?><h2><?php echo $entry->getValueByKey("opt2text"); ?></h2><?php endif; ?>
             <?php if ($entry->getValueByKey("opt1file")) : ?>
                     </div>
                 </div>
@@ -174,7 +175,7 @@ function lwEventGetImageWidth($config, $entry)
                 <p>
                     <?php 
                         $array = lwEventPrepareEntryTextAndMoreLink($entry); 
-                        echo $array['text']; ?>
+                        if(strlen($array['text'])>0): echo $array['text']; endif; ?>
                     [<a class="<?php echo $array['class']; ?>" <?php if($array['class'] == "extern"): ?>target="_blank"<?php endif; ?> href="<?php echo $array['targeturl']; ?>"><?php if ($this->lang == "en"): ?>more<?php else: ?>mehr<?php endif; ?></a>]
                 </p>
             </div>

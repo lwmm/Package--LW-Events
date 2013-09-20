@@ -3,6 +3,7 @@
 </style>
 <?php if($this->usecss): ?>
 <style>
+    
     a.button{
         padding: 0 10px;
         background-color: #F57912;
@@ -24,8 +25,6 @@
     .formElement label span{font-weight: normal;font-size: 10px}
 
     .formElement .text{width: 95%;}
-
-    .formElement #mainText{height: 350px;}
 
     .formElement #cmslink{width: 50px;}
     
@@ -77,6 +76,11 @@
         height: auto;
         max-height: 110px;
     }
+    
+    .beliebig {
+        width:95% !important;
+    }
+    
 </style>
 <?php endif; ?>
 <script>
@@ -152,7 +156,7 @@
         remove_script_host: false
     });
 </script>
-<div class="lwevents">
+<div id="lwevents">
     <div id="entryForm">
         <h2 style="font-size:20px;"><?php 
             if ($this->formtype =="new") {
@@ -218,8 +222,8 @@
             <!-- Ort -->
 
             <div class="formElement">
-                <label for="headline2"><?php if ($this->lang == "en"): ?>Place<?php else: ?>Ort<?php endif; ?>:</label><br>
-                <input id="headline2" class="text" type="text" name="opt2text" value="<?php echo $this->entity->getValueByKey("opt2text"); ?>">
+                <label for="opt2text"><?php if ($this->lang == "en"): ?>Place<?php else: ?>Ort<?php endif; ?>:</label><br>
+                <input id="opt2text" class="text" type="text" name="opt2text" value="<?php echo $this->entity->getValueByKey("opt2text"); ?>">
                 <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2text']); ?>
             </div>
 
@@ -258,24 +262,25 @@
 
             <div id="containerMainText" class="formElement">
                 <label for="mainText">Text:</label><br>
-                <textarea id="mainText" class="text mceEditor" name="opt1clob"><?php echo $this->entity->getValueByKey("opt1clob"); ?></textarea><br>
+                <textarea style="width:495px; height:250px;" id="mainText" class="text mceEditor beliebig" name="opt1clob"><?php echo $this->entity->getValueByKey("opt1clob"); ?></textarea><br>
                 <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1clob']); ?>
             </div>
 
             <!-- Teasertext -->
 
             <div id="containerTeasertext" class="formElement">
-                <label for="link">Teasertext:</label><br>
-                <textarea id="teasertext" class="text mceEditor" type="text" name="opt2clob"><?php echo $this->entity->getValueByKey("opt2clob"); ?></textarea>
+                <label for="teasertext">Teasertext:</label><br>
+                <textarea style="width:495px; height:250px;" id="teasertext" class="text mceEditor beliebig" name="opt2clob"><?php echo $this->entity->getValueByKey("opt2clob"); ?></textarea><br>
                 <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2clob']); ?>
             </div>
-
+            
+            
             <!-- Seitenindex -->
 
             <div id="containerCms" class="formElement">
                 <label for="link"><?php if ($this->lang == "en"): ?>Page Id<?php else: ?>Seiten Id<?php endif; ?>:</label><br>
                 <span><?php if ($this->lang == "en"): ?>enter internal CMS page ID number<?php else: ?>Soll auf eine Seite im CMS verwiesen werden, so ist hier die Indexnr. einzutragen.<?php endif; ?></span><br>
-                <input id="cmslink" class="text" type="text" name="opt1number" value="<?php echo $this->entity->getValueByKey("opt1number"); ?>" >
+                <input id="cmslink" class="text mceEditor" type="text" name="opt1number" value="<?php echo $this->entity->getValueByKey("opt1number"); ?>" >
                 <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1number']); ?>
             </div>
 
