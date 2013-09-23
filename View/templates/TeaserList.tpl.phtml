@@ -190,12 +190,12 @@ function lwEventGetDateOutputTeaser($entry)
 
                         $('#item_' + i).css('display', 'block');
                         $('#item_' + i + '.calelement h2').text(day1 + '.' + month1 + '.' + year1 + ' - ' + day2 + '.' + month2 + '.' + year2);
-                        $('#item_' + i + '.calelement h1').html(parray[i]['headline'] + '<span style="font-size:11px;">...[<a href="#" >&nbsp;</a>]<span>');
+                        $('#item_' + i + '.calelement h1').html(parray[i]['headline'] + '<span style="font-size:11px;">...<br/><a href="#" >&nbsp;</a><span>');
                         $('#item_' + i + '.calelement h1 span a').text('<?php if ($this->lang == "en") {
-            echo "more";
+            echo "[more]";
         }
         else {
-            echo "mehr";
+            echo "[mehr]";
         } ?>');
                         if(urltype === 'extern'){
                             $('#item_' + i + '.calelement h1 span a').attr('target', '_blank');
@@ -279,9 +279,11 @@ if ($this->collection->count()>0) :
                 ?>
                 <div class="veranstaltung">
                     <div class="lightblue"><?php echo lwEventGetDateOutputTeaser($entry) ?></div>
+                    <?php if(strlen($entry->getValueByKey('opt2text'))>0 && $entry->getValueByKey('opt2text') != "."): ?>
                     <div class="lightblue">
                             <?php echo $entry->getValueByKey('opt2text'); ?>
                     </div>
+                    <?php endif; ?>
                     <h1><?php echo $entry->getValueByKey('opt1text'); ?><span class="lw_event_teaserlink">
                             <?php
                             if ($entry->getValueByKey("opt5number") == 3) {
@@ -296,7 +298,8 @@ if ($this->collection->count()>0) :
                                 $targetUrl = lw_page::getInstance()->getUrl(array("cmd"=>"showDetail", "id"=>$entry->getValueByKey("id")));
                                 $class = "intern";
                             }
-                            ?> [<a class="<?php echo $class; ?>" <?php if($class=="extern"): ?>target="_blank" <?php endif; ?>href="<?php echo $targetUrl; ?>"><?php if ($this->lang == "en"): ?>more<?php else: ?>mehr<?php endif; ?></a>]</span></h1>
+                            ?><br/>
+                            <a class="<?php echo $class; ?>" <?php if($class=="extern"): ?>target="_blank" <?php endif; ?>href="<?php echo $targetUrl; ?>">[<?php if ($this->lang == "en"): ?>more<?php else: ?>mehr<?php endif; ?>]</a></span></h1>
                 </div>
     <?php 
     if ($i == $this->teaserelements) {

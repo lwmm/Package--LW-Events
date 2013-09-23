@@ -127,7 +127,7 @@ function lwEventGetImageWidth($config, $entry)
     </script>
     <div id="paging">
         <div>
-            <a class="menu" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showList")); ?>">
+            <a href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showList")); ?>">
             <?php if ($this->lang == "en"): ?>back to actual events<?php else: ?>zur&uuml;ck zu den aktuellen Eintr&auml;gen<?php endif; ?>
             </a>
         </div>
@@ -176,7 +176,7 @@ function lwEventGetImageWidth($config, $entry)
                     <?php 
                         $array = lwEventPrepareEntryTextAndMoreLink($entry); 
                         if(strlen($array['text'])>0): echo $array['text']; endif; ?>
-                    [<a class="<?php echo $array['class']; ?>" <?php if($array['class'] == "extern"): ?>target="_blank"<?php endif; ?> href="<?php echo $array['targeturl']; ?>"><?php if ($this->lang == "en"): ?>more<?php else: ?>mehr<?php endif; ?></a>]
+                    <a class="<?php echo $array['class']; ?>" <?php if($array['class'] == "extern"): ?>target="_blank"<?php endif; ?> href="<?php echo $array['targeturl']; ?>">[<?php if ($this->lang == "en"): ?>more<?php else: ?>mehr<?php endif; ?>]</a>
                 </p>
             </div>
         </div>
@@ -191,7 +191,7 @@ function lwEventGetImageWidth($config, $entry)
 
     <?php if(!$this->archiveView): ?>
     <div id="paging">
-        <a class="menu" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showArchive")); ?>">
+        <a href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showArchive")); ?>">
             <?php if ($this->lang == "en"): echo "go to archive"; else: echo "zum Archiv"; endif; ?>
         </a>
     </div>
