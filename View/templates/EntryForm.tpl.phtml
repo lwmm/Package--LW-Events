@@ -1,88 +1,6 @@
 <style>
     #containerCms, #containerMainText, #containerExt, #containerTeasertext{display: none;}
 </style>
-<?php if($this->usecss): ?>
-<style>
-    
-    a.button{
-        padding: 0 10px;
-        background-color: #F57912;
-        color: #FFF;
-        margin-left: 5px;
-    }
-    
-    #formButtons{
-        margin-top: 20px;
-    }
-
-    .formElement{margin-bottom: 20px;}
-
-    .formElement label{
-        font-weight: bold;
-        font-size: 15px;
-    }
-
-    .formElement label span{font-weight: normal;font-size: 10px}
-
-    .formElement .text{width: 95%;}
-
-    .formElement #cmslink{width: 50px;}
-    
-    .formElement #datepicker_show, .formElement #datepicker_show2{width: 80px;}
-
-    #entryForm .error{
-        background-color: darkred;
-        color: #fff;
-        padding: 5px;
-        margin-bottom: 10px;
-        font-size: 15px;
-        font-weight: bold;
-        text-align: center;
-        border-radius: 10px;
-        width: 95%;
-    }
-
-    #entryForm .error p{
-        padding: 0;
-        margin: 0;
-    }
-
-    .datepicker{position: relative;}
-
-    img.ui-datepicker-trigger{
-        position: absolute;
-        top: 17px;
-        left: 90px;
-        cursor: pointer;
-    }
-
-    #entryForm{position: relative;}
-
-    #dateto{
-        float: left;
-        margin-left: 50px;
-    }
-
-    #entryForm h2{margin: 0;}
-    #entryForm form{margin-top: 30px;}
-    #back a{
-        padding: 0 10px;
-        background-color: #F57912;
-        color: #FFF;
-    }
-    
-    img.events_logo{
-        max-width: 170px;
-        height: auto;
-        max-height: 110px;
-    }
-    
-    .beliebig {
-        width:95% !important;
-    }
-    
-</style>
-<?php endif; ?>
 <script>
     $(document).ready(function() {
         var icon = "<?php echo $this->mediaUrl; ?>pics/fatcow_icons/16x16_0180/calendar.png";
@@ -124,19 +42,19 @@
         <?php endif; ?>
             
             
-        $('.typetext').click(function(){
+        $('#typetext').click(function(){
             $('#containerCms').hide();
             $('#containerExt').hide();
             $('#containerTeasertext').hide();
             $('#containerMainText').show();
         });
-        $('.typecms').click(function(){
+        $('#typecms').click(function(){
             $('#containerMainText').hide();
             $('#containerExt').hide();
             $('#containerTeasertext').show();
             $('#containerCms').show();
         });
-        $('.typeext').click(function(){
+        $('#typeext').click(function(){
             $('#containerMainText').hide();
             $('#containerCms').hide();
             $('#containerTeasertext').show();
@@ -149,16 +67,17 @@
     tinyMCE.init({
         mode: "specific_textareas",
         editor_selector: "mceEditor",
-        theme: "simple",
+        theme: "advanced",
+	    theme_advanced_buttons1 : "bold,italic,bullist,numlist,link,unlink,undo,redo,removeformat",
         language: "de",
         convert_urls: false,
         relative_urls: false,
         remove_script_host: false
     });
 </script>
-<div id="lwevents">
-    <div id="entryForm">
-        <h2 style="font-size:20px;"><?php 
+<div id="LwEvents">
+    <div id="LwEvents_EntryForm">
+        <h2><?php 
             if ($this->formtype =="new") {
                 if ($this->lang == "en") {
                     echo "New Event";
@@ -176,67 +95,73 @@
                 }
             }
         ?></h2>
-        <div id="back">
-            <a href="<?php 
+        
+        <div class="LwEvents_BackToEventsList">
+            <a class="LwEvents_ButtonBackToEventsList" href="<?php 
                 if ($this->entity->getValueByKey("opt4number") < date("Ymd") && $this->entity->getValueByKey("opt4number")) {
                     echo \lw_page::getInstance()->getUrl(array("cmd"=>"showArchive", "year" => substr($this->entity->getValueByKey("opt2number"), 0, 4))); 
                 }
                 else {
                     echo \lw_page::getInstance()->getUrl(array("cmd"=>"showList")); 
                 }
-            ?>"> <?php if ($this->lang == "en"): ?>back<?php else: ?>zur&uuml;ck<?php endif; ?></a>
+            ?>">
+            <span><?php if ($this->lang == "en"): ?>back<?php else: ?>zur&uuml;ck<?php endif; ?></span>
+            </a>
         </div>
 
         <?php if(is_array($this->errors)): ?>
-        <div class="alert page-error"><b><?php if ($this->lang == "en"): ?>Errors occured!<?php else: ?>Es gibt Fehler!<?php endif; ?></b></div>
+        <div class="LwEvents_ErrorMesage"><?php if ($this->lang == "en"): ?>Errors occured!<?php else: ?>Es gibt Fehler!<?php endif; ?></div>
         <?php endif; ?>    
-
 
         <form action="<?php echo $this->actionUrl; ?>" method="POST" ENCTYPE="multipart/form-data">
 
             <!-- Datum von bis -->
 
-            <div>
-                <div class="formElement datepicker" style="float:left">
+            <div class="LwEventsForm_Block">
+                
+                <div class="LwEventsForm_Date LwEventsForm_DateFrom">
                     <label for="datepicker"><?php if ($this->lang == "en"): ?>Date:<span>(Start)</span><?php else: ?>Datum:<span>(von)</span><?php endif; ?></label><br>
-                    <input id="datepicker_show" class="text" type="text" value="" disabled>
-                    <input id="datepicker" class="text" type="hidden" name="opt2number" value="">
+                    <input id="datepicker_show" type="text" value="" disabled>
+                    <input id="datepicker" type="hidden" name="opt2number" value="">
                 </div>
-                <div id="dateto" class="formElement datepicker">
+                
+                <div class="LwEventsForm_date LwEventsForm_DateTo">
                     <label for="datepicker"><?php if ($this->lang == "en"): ?>Date:<span>(End)</span><?php else: ?>Datum:<span>(bis)</span><?php endif; ?></label><br>
-                    <input id="datepicker_show2" class="text" type="text" value="" disabled>
-                    <input id="datepicker2" class="text" type="hidden" name="opt4number" value="">
+                    <input id="datepicker_show2" type="text" value="" disabled>
+                    <input id="datepicker2" type="hidden" name="opt4number" value="">
                 </div>
+                
             </div>
             <div style="clear:both;">&nbsp;</div>
+            
             <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2number']); ?>
 
             <!-- Überschrift -->
 
-            <div class="formElement" >
-                <label for="headline1"><?php if ($this->lang == "en"): ?>Headline<?php else: ?>&Uuml;berschrift<?php endif; ?>:</label><br>
-                <input id="headline1" class="text" type="text" name="opt1text" value="<?php echo $this->entity->getValueByKey("opt1text"); ?>">
+            <div class="LwEventsForm LwEvents_Headline">
+                <label for="headline1"><?php if ($this->lang == "en"): ?>Headline<?php else: ?>&Uuml;berschrift<?php endif; ?>:</label>
+                <input id="headline1" type="text" name="opt1text" value="<?php echo $this->entity->getValueByKey("opt1text"); ?>">
                 <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1text']); ?>
             </div>
 
             <!-- Ort -->
 
-            <div class="formElement">
-                <label for="opt2text"><?php if ($this->lang == "en"): ?>Place<?php else: ?>Ort<?php endif; ?>:</label><br>
-                <input id="opt2text" class="text" type="text" name="opt2text" value="<?php echo $this->entity->getValueByKey("opt2text"); ?>">
+            <div class="LwEventsForm LwEvents_Location">
+                <label for="opt2text"><?php if ($this->lang == "en"): ?>Place<?php else: ?>Ort<?php endif; ?>:</label>
+                <input id="opt2text" type="text" name="opt2text" value="<?php echo $this->entity->getValueByKey("opt2text"); ?>">
                 <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2text']); ?>
             </div>
 
             <!-- Logo -->
 
-            <div class="formElement">
-                <div id="uploadedFile">
-                    <h3><?php if ($this->lang == "en"): ?>Uploaded Logo File (only .gif, .jpg and .png allowed)<?php else: ?>Hochgeladene Logodatei (nur .gif, .jpg und .png erlaubt)<?php endif; ?>: <?php if(!$this->entity->getValueByKey("opt1file")) :?><span><?php if ($this->lang == "en"): ?>none<?php else: ?>keines<?php endif; ?></span><?php endif; ?></h3>
+            <div class="LwEventsForm LwEvents_Logo">
+                <div id="LwEventsForm_UploadedFile">
+                    <div class="LwEvents_HelpText"><?php if ($this->lang == "en"): ?>Uploaded Logo File (only .gif, .jpg and .png allowed)<?php else: ?>Hochgeladene Logodatei (nur .gif, .jpg und .png erlaubt)<?php endif; ?></div>
                     <?php if($this->oldEntity->getValueByKey("opt1file")) :?>
-                        <div>
-                            <a class="button" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"deleteLogo", "id"=>$this->entity->getValueByKey("id"))); ?>" onclick="return confirm('<?php if ($this->lang == "en"): ?>Do you really want to delete the Logo?<?php else: ?>Logo wirklich l&ouml;schen ?<?php endif; ?>');" ><?php if ($this->lang == "en"): ?>delete Logo<?php else: ?>Logo l&ouml;schen<?php endif; ?></a>
+                        <div class="LwEvents_Admin">
+                            <a class="LwEvents_deleteLogoButton" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"deleteLogo", "id"=>$this->entity->getValueByKey("id"))); ?>" onclick="return confirm('<?php if ($this->lang == "en"): ?>Do you really want to delete the Logo?<?php else: ?>Logo wirklich l&ouml;schen ?<?php endif; ?>');" ><?php if ($this->lang == "en"): ?>delete Logo<?php else: ?>Logo l&ouml;schen<?php endif; ?></a>
                         </div>
-                        <img class="events_logo" src="<?php echo $this->config['url']['resource']."lw_events/".$this->oldEntity->getValueByKey("opt1file"); ?>">
+                        <img class="LwEvents_LogoPreview" src="<?php echo $this->config['url']['resource']."lw_events/".$this->oldEntity->getValueByKey("opt1file"); ?>">
                     <?php endif; ?>
                 </div>
                 <input class="upload" name="opt1file" type="file">
@@ -245,22 +170,28 @@
 
             <!-- Termintyp -->
 
-            <div class="formElement">
-                <h2><?php if ($this->lang == "en"): ?>Choose description type<?php else: ?>Bitte Termin-Eingabe w&auml;hlen<?php endif; ?>:</h2>
+            <div class="LwEventsForm LwEvents_Type">
+                <div class="LwEvents_HelpText"><?php if ($this->lang == "en"): ?>Choose description type<?php else: ?>Bitte Termin-Eingabe w&auml;hlen<?php endif; ?>:</div>
 
-                <input class="typetext" type="radio" id="typetext" value="1" name="opt5number" <?php if (!$this->entity->getValueByKey("opt5number") || $this->entity->getValueByKey("opt5number") == 1): ?> checked="checked" <?php endif; ?>>
-                <label class="typetext" for="typetext"><?php if ($this->lang == "en"): ?>free text<?php else: ?>Texteingabe<?php endif; ?></label><br/>
+                <div class="LwEventsForm_Block">
+                    <input class="LwEventsForm LwEventsTextType" type="radio" id="typetext" value="1" name="opt5number" <?php if (!$this->entity->getValueByKey("opt5number") || $this->entity->getValueByKey("opt5number") == 1): ?> checked="checked" <?php endif; ?>>
+                    <label class="LwEventsForm LwEventsTextType" for="typetext"><?php if ($this->lang == "en"): ?>free text<?php else: ?>Texteingabe<?php endif; ?></label><br/>
+                </div>
 
-                <input class="typecms" type="radio" id="typecms" value="2" name="opt5number" <?php if ($this->entity->getValueByKey("opt5number") == 2) : ?> checked="checked" <?php endif; ?>>
-                <label class="typecms" for="typecms"><?php if ($this->lang == "en"): ?>link to internal cms page<?php else: ?>Verweis auf eine CMS-Seite<?php endif; ?></label><br>
+                <div class="LwEventsForm_Block">
+                    <input class="LwEventsForm LwEventsCMSType" type="radio" id="typecms" value="2" name="opt5number" <?php if ($this->entity->getValueByKey("opt5number") == 2) : ?> checked="checked" <?php endif; ?>>
+                    <label class="LwEventsForm LwEventsCMSType" for="typecms"><?php if ($this->lang == "en"): ?>link to internal cms page<?php else: ?>Verweis auf eine CMS-Seite<?php endif; ?></label><br>
+                </div>
 
-                <input class="typeext" type="radio" id="typeext" value="3" name="opt5number" <?php if ($this->entity->getValueByKey("opt5number") == 3) : ?> checked="checked" <?php endif; ?>>
-                <label class="typeext" for="typeext"><?php if ($this->lang == "en"): ?>link to external page<?php else: ?>Verweis auf eine externe Seite<?php endif; ?></label>
+                <div class="LwEventsForm_Block">
+                    <input class="LwEventsForm LwEventsExternalType" type="radio" id="typeext" value="3" name="opt5number" <?php if ($this->entity->getValueByKey("opt5number") == 3) : ?> checked="checked" <?php endif; ?>>
+                    <label class="LwEventsForm LwEventsExternalType" for="typeext"><?php if ($this->lang == "en"): ?>link to external page<?php else: ?>Verweis auf eine externe Seite<?php endif; ?></label>
+                </div>
             </div>
 
             <!-- Text -->
 
-            <div id="containerMainText" class="formElement">
+            <div id="containerMainText" class="LwEventsForm LwEvents_MainText">
                 <label for="mainText">Text:</label><br>
                 <textarea style="width:495px; height:250px;" id="mainText" class="text mceEditor beliebig" name="opt1clob"><?php echo $this->entity->getValueByKey("opt1clob"); ?></textarea><br>
                 <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1clob']); ?>
@@ -268,7 +199,7 @@
 
             <!-- Teasertext -->
 
-            <div id="containerTeasertext" class="formElement">
+            <div id="containerTeasertext" class="LwEventsForm LwEvents_TeaserText">
                 <label for="teasertext">Teasertext:</label><br>
                 <textarea style="width:495px; height:250px;" id="teasertext" class="text mceEditor beliebig" name="opt2clob"><?php echo $this->entity->getValueByKey("opt2clob"); ?></textarea><br>
                 <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2clob']); ?>
@@ -277,24 +208,24 @@
             
             <!-- Seitenindex -->
 
-            <div id="containerCms" class="formElement">
+            <div id="containerCms" class="LwEventsForm LwEvents_PageIndex">
                 <label for="link"><?php if ($this->lang == "en"): ?>Page Id<?php else: ?>Seiten Id<?php endif; ?>:</label><br>
-                <span><?php if ($this->lang == "en"): ?>enter internal CMS page ID number<?php else: ?>Soll auf eine Seite im CMS verwiesen werden, so ist hier die Indexnr. einzutragen.<?php endif; ?></span><br>
-                <input id="cmslink" class="text mceEditor" type="text" name="opt1number" value="<?php echo $this->entity->getValueByKey("opt1number"); ?>" >
+                <span class="LwEvents_HelpText"><?php if ($this->lang == "en"): ?>enter internal CMS page ID number<?php else: ?>Soll auf eine Seite im CMS verwiesen werden, so ist hier die Indexnr. einzutragen.<?php endif; ?></span><br>
+                <input id="cmslink" class="mceEditor" type="text" name="opt1number" value="<?php echo $this->entity->getValueByKey("opt1number"); ?>" >
                 <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1number']); ?>
             </div>
 
             <!-- Target URL -->
 
-            <div id="containerExt" class="formElement">
+            <div id="containerExt" class="LwEventsForm LwEvents_TargetUrl">
                 <label for="link">Url:</label><br>
-                <input id="extlink" class="text" type="text" name="opt3text" value="<?php echo $this->entity->getValueByKey("opt3text"); ?>" >
+                <input id="extlink" type="text" name="opt3text" value="<?php echo $this->entity->getValueByKey("opt3text"); ?>" >
                 <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt3text']); ?>
             </div>
 
             <!-- Submit Button -->
 
-            <div id="formButtons">
+            <div id="formButtons" class="LwEventsForm LwEvents_SubmitButton">
                 <input type="submit" value="<?php if ($this->lang == "en"): ?>save<?php else: ?>speichern<?php endif; ?>">
             </div>
 

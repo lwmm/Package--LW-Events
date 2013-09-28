@@ -34,6 +34,15 @@ class Frontend extends \LWmvc\Controller\Controller
         $this->response->useJQueryUI();
     }
     
+    public function setPluginParams($params)
+    {
+        if (is_array($params) && $params['language']) {
+            $dto = new \LWmvc\Model\DTO($params);
+            $this->listConfig = new \LwEvents\Model\Configuration\Object\configuration($id);
+            $this->listConfig->setDTO($dto);
+        }
+    }
+    
     public function setAdmin($bool)
     {
         if ($bool === true) {
@@ -51,8 +60,10 @@ class Frontend extends \LWmvc\Controller\Controller
     
     public function execute()
     {
-        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Configuration', 'getConfigurationEntityById', array("id"=>$this->getContentObjectId()));
-        $this->listConfig = $response->getDataByKey('ConfigurationEntity');
+        if (!$this->listConfig) {
+            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Configuration', 'getConfigurationEntityById', array("id"=>$this->getContentObjectId()));
+            $this->listConfig = $response->getDataByKey('ConfigurationEntity');
+        }
 
         if ($this->listConfig->getValueByKey("admin") == 1 || \lw_registry::getInstance()->getEntry("auth")->isLoggedIn()) {
             $this->setAdmin(true);
@@ -90,6 +101,8 @@ class Frontend extends \LWmvc\Controller\Controller
 
         $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getIsDeletableSpecification');
         $view->setIsDeletableSpecification($response->getDataByKey('isDeletableSpecification'));
+        
+        $view->setAdmin($this->isAdmin());
         
         return $this->returnRenderedView($view);    
     }

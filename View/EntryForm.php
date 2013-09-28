@@ -39,11 +39,11 @@ class EntryForm extends \LWmvc\View\View
         }
         
         $this->view->lang = $this->configuration->getValueByKey("language");
-        $this->view->usecss = $this->configuration->getValueByKey("usecss");
+        if ($this->configuration->getValueByKey("usecss")) {
+            $response = \lw_registry::getInstance()->getEntry('response');
+            $response->addHeaderItems('css', file_get_contents(dirname(__FILE__) . '/css/EntryForm.css'));
+        }
         $this->view->ValidationErrorViewHelper = new \LWmvc\View\Helper\ValidationErrorViewHelper($this->configuration->getValueByKey('language'));
-        
-        //echo "<pre>";print_r($this->view->errors);exit();
-        
         return $this->view->render();
     }
 }

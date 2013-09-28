@@ -30,6 +30,10 @@ class ContentoryBackend extends \LWmvc\Controller\Controller
         $this->config = \lw_registry::getInstance()->getEntry("config");
     }
     
+    public function setPluginParams($params)
+    {
+    }
+    
     public function execute()
     {
         /*

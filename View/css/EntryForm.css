@@ -1,0 +1,98 @@
+a.button {
+    padding: 0 10px;
+    background-color: #F57912;
+    color: #FFF;
+    margin-left: 5px;
+}
+
+#formButtons {
+    margin-top: 20px;
+}
+
+.formElement {
+    margin-bottom: 20px;
+}
+
+.formElement label {
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.formElement label span {
+    font-weight: normal;
+    font-size: 10px
+}
+
+.formElement .text {
+    width: 95%;
+}
+
+.formElement #cmslink {
+    width: 50px;
+}
+
+.formElement #datepicker_show, 
+.formElement #datepicker_show2 {
+    width: 80px;
+}
+
+#entryForm .error {
+    background-color: darkred;
+    color: #fff;
+    padding: 5px;
+    margin-bottom: 10px;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 10px;
+    width: 95%;
+}
+
+#entryForm .error p {
+    padding: 0;
+    margin: 0;
+}
+
+.datepicker {
+    position: relative;
+}
+
+img.ui-datepicker-trigger {
+    position: absolute;
+    top: 17px;
+    left: 90px;
+    cursor: pointer;
+}
+
+#entryForm {
+    position: relative;
+}
+
+#dateto {
+    float: left;
+    margin-left: 50px;
+}
+
+#entryForm h2 {
+    margin: 0;
+}
+
+#entryForm form {
+    margin-top: 30px;
+}
+
+#back a {
+    padding: 0 10px;
+    background-color: #F57912;
+    color: #FFF;
+}
+
+img.events_logo {
+    max-width: 170px;
+    height: auto;
+    max-height: 110px;
+}
+
+.beliebig {
+    width:95% !important;
+}

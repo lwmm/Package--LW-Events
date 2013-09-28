@@ -1,0 +1,175 @@
+    
+        <div id="hiddenCalElement">
+            <div id="item_new" class="calelement">
+                <h3>DATUM</h3>
+                <h2>HEADLINE</h2>
+            </div>
+        </div>
+
+        <div class="yui-skin-sam">
+            <div id="veranstaltungen">
+                <center><?php if ($this->lang == "en"): ?>Events<?php else: ?>Veranstaltungen<?php endif; ?></center>
+                
+                <div id="infobox">
+                    <span id="close" class="close" onclick="$('#infobox').hide();">x</span>
+                    <div style="margin-top:10px;">
+                        <p id="date"></p>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div id="cal1Container"></div>
+        </div>
+
+        <script type="text/javascript">
+            YAHOO.namespace("example.calendar");
+
+            function getPreparedArray()
+            {
+                var eventArray = new Array();
+        <?php
+        $i = 0;
+        foreach ($this->collection as $entry) {
+
+            echo "" . PHP_EOL;
+            echo "eventArray[" . $i . "] = new Object();" . PHP_EOL;
+            echo "eventArray[" . $i . "]['id'] = " . $entry->getValueByKey("id") . ";" . PHP_EOL;
+            echo "eventArray[" . $i . "]['pageid'] = " . $entry->getValueByKey("opt1number") . ";" . PHP_EOL;
+            echo "eventArray[" . $i . "]['startdate'] = " . $entry->getValueByKey("opt2number") . ";" . PHP_EOL;
+            echo "eventArray[" . $i . "]['enddate'] = " . $entry->getValueByKey("opt4number") . ";" . PHP_EOL;
+            echo "eventArray[" . $i . "]['headline'] ='" . $entry->getValueByKey("opt1text") . "';" . PHP_EOL;
+            echo "eventArray[" . $i . "]['exturl'] ='" . $entry->getValueByKey("opt3text") . "';" . PHP_EOL;
+            echo "" . PHP_EOL;
+            $i++;
+        }
+        ?>
+                return eventArray;
+            }
+
+            function dateToLocaleString(dt, cal) {
+                var wStr = cal.cfg.getProperty("WEEKDAYS_LONG")[dt.getDay()];
+                var dStr = dt.getDate();
+                var mStr = cal.cfg.getProperty("MONTHS_LONG")[dt.getMonth()];
+                var yStr = dt.getFullYear();
+                return (wStr + ", " + dStr + " " + mStr + " " + yStr);
+            }
+
+            function mySelectHandler(type, args, obj) {
+                var selected = args[0];
+                var selDate = this.toDate(selected[0]);
+                var myDate = new Date(selDate);
+
+                var y = String(myDate.getFullYear());
+                var monat = myDate.getMonth() + 1;
+                if (monat < 10) {
+                    var m = "0" + String(monat);
+                } else {
+                    var m = String(monat);
+                }
+                
+                if (myDate.getDate() < 10) {
+                    var d = "0" + String(myDate.getDate());
+                } else {
+                    var d = String(myDate.getDate());
+                }
+
+                var selectedIntDate = y + m + d;
+
+                var parray = getPreparedArray();
+                var bool = false;
+                $('#infobox div.calelement').remove();
+
+                for (var i = parray.length - 1; i >= 0; i--) {
+                    if (selectedIntDate >= parray[i]['startdate'] & selectedIntDate <= parray[i]['enddate']) {
+                        var bool = true;
+
+                        var year1 = String(parray[i]['startdate']).substr(0, 4);
+                        var month1 = String(parray[i]['startdate']).substr(4, 2);
+                        var day1 = String(parray[i]['startdate']).substr(6, 2);
+
+                        var year2 = String(parray[i]['enddate']).substr(0, 4);
+                        var month2 = String(parray[i]['enddate']).substr(4, 2);
+                        var day2 = String(parray[i]['enddate']).substr(6, 2);
+
+                        if (parray[i]['pageid'] > 0) {
+                            var url = '<?php echo $this->baseUrlWithoutIndex ?>' + parray[i]['pageid'];
+                            var urltype = 'intern';
+                        } else if (String(parray[i]['exturl']) === "") {
+                            var url = '<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showDetail")); ?>&id=' + parray[i]['id'];
+                            var urltype = 'intern';
+                        } else if (String(parray[i]['exturl']) !== "") {
+                            var url = parray[i]['exturl'];
+                            var urltype = 'extern';
+                        }
+
+                        $('#hiddenCalElement #item_new').clone()
+                                .attr('id', 'item_' + i)
+                                .insertAfter('#infobox p#date');
+
+                        $('#item_' + i).css('display', 'block');
+                        $('#item_' + i + '.calelement h3').text(day1 + '.' + month1 + '.' + year1 + ' - ' + day2 + '.' + month2 + '.' + year2);
+                        $('#item_' + i + '.calelement h2').html(parray[i]['headline'] + '<span style="font-size:11px;">...<br/><a href="#" >&nbsp;</a><span>');
+                        $('#item_' + i + '.calelement h2 span a').text('<?php if ($this->lang == "en") {
+            echo "[more]";
+        }
+        else {
+            echo "[mehr]";
+        } ?>');
+                        if(urltype === 'extern'){
+                            $('#item_' + i + '.calelement h2 span a').attr('target', '_blank');
+                        }
+                        $('#item_' + i + '.calelement h2 span a').attr('href', url);
+                        $('#item_' + i + '.calelement h2 span a').addClass(urltype);
+                    }
+                }
+                if (bool) {
+                    $('#infobox').show();
+                    $('#infobox #date').html(dateToLocaleString(selDate, this));
+                } else {
+                    $('#infobox').hide();
+                }
+            }
+
+            YAHOO.example.calendar.init = function() {
+                YAHOO.example.calendar.cal1 = new YAHOO.widget.Calendar("cal1", "cal1Container");
+                YAHOO.example.calendar.cal1.selectEvent.subscribe(mySelectHandler, YAHOO.example.calendar.cal1, true);
+
+                YAHOO.example.calendar.cal1.cfg.setProperty("DATE_FIELD_DELIMITER", ".");
+
+                YAHOO.example.calendar.cal1.cfg.setProperty("MDY_DAY_POSITION", 1);
+                YAHOO.example.calendar.cal1.cfg.setProperty("MDY_MONTH_POSITION", 2);
+                YAHOO.example.calendar.cal1.cfg.setProperty("MDY_YEAR_POSITION", 3);
+
+                YAHOO.example.calendar.cal1.cfg.setProperty("MD_DAY_POSITION", 1);
+                YAHOO.example.calendar.cal1.cfg.setProperty("MD_MONTH_POSITION", 2);
+
+<?php if ($this->lang == "de"): ?>
+                YAHOO.example.calendar.cal1.cfg.setProperty("MONTHS_SHORT", ["Jan", "Feb", "M\u00E4r", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]);
+                YAHOO.example.calendar.cal1.cfg.setProperty("MONTHS_LONG", ["Januar", "Februar", "M\u00E4rz", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]);
+                YAHOO.example.calendar.cal1.cfg.setProperty("WEEKDAYS_1CHAR", ["S", "M", "D", "M", "D", "F", "S"]);
+                YAHOO.example.calendar.cal1.cfg.setProperty("WEEKDAYS_SHORT", ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"]);
+                YAHOO.example.calendar.cal1.cfg.setProperty("WEEKDAYS_MEDIUM", ["Son", "Mon", "Die", "Mit", "Don", "Fre", "Sam"]);
+                YAHOO.example.calendar.cal1.cfg.setProperty("WEEKDAYS_LONG", ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"]);
+<?php endif; ?>                
+
+        <?php foreach ($this->collection as $entry) : ?>
+                    YAHOO.example.calendar.cal1.addRenderer("<?php
+                    $date2 = "";
+                    if ($entry->getValueByKey("opt4number")) {
+                        $date2 = ' - '.$this->formatDate($entry->getValueByKey('opt4number'));
+                    }
+                    else {
+                        $date2 = ' - '.$this->formatDate($entry->getValueByKey('opt2number'));
+                    }
+                    echo $this->formatDate($entry->getValueByKey('opt2number')).$date2;
+            ?>", YAHOO.example.calendar.cal1.renderCellStyleHighlight1);
+        <?php endforeach; ?>
+                YAHOO.example.calendar.cal1.render();
+            };
+
+            YAHOO.util.Event.onDOMReady(YAHOO.example.calendar.init);
+        </script>
+
+        <div style="clear:both" ></div>
+

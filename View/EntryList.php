@@ -23,7 +23,6 @@ namespace LwEvents\View;
 
 class EntryList extends \LWmvc\View\View
 {
-
     public function __construct()
     {
         parent::__construct('edit');
@@ -32,6 +31,19 @@ class EntryList extends \LWmvc\View\View
         $this->auth = $this->dic->getLwAuth();
         $this->inAuth = $this->dic->getLwInAuth();
         $this->view = new \lw_view(dirname(__FILE__) . '/templates/EntryList.tpl.phtml');
+        $this->view->PrepareEntryTextAndMoreLinkHelper = new \LwEvents\View\Helper\PrepareEntryTextAndMoreLinkHelper();
+        $this->view->PrepareEventDateOutputHelper = new \LwEvents\View\Helper\PrepareEventDateOutputHelper();
+        $this->view->PrepareLogoWidthHelper = new \LwEvents\View\Helper\PrepareLogoWidthHelper();
+    }
+
+    public function setAdmin($admin)
+    {
+        $this->admin = $admin;
+    }
+
+    public function isAdmin()
+    {
+        return $this->admin;
     }
 
     public function setConfiguration($configuration)
@@ -47,12 +59,15 @@ class EntryList extends \LWmvc\View\View
     public function render()
     {
         $this->view->addUrl = \lw_page::getInstance()->getUrl(array("cmd"=>"showAddForm"));
-        $this->view->admin = true;
+        if ($this->isAdmin()) {
+            $this->view->admin = true;
+        }
         $this->view->configuration = $this->configuration;
         $this->view->lang = $this->configuration->getValueByKey("language");
-        $this->view->usecss = $this->configuration->getValueByKey("usecss");
+        if ($this->configuration->getValueByKey("usecss")) {
+            $response = \lw_registry::getInstance()->getEntry('response');
+            $response->addHeaderItems('css', file_get_contents(dirname(__FILE__) . '/css/EntryList.css'));
+        }
         return $this->view->render();
     }
-
 }
-

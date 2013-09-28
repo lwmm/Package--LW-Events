@@ -30,6 +30,8 @@ class TeaserList extends \LWmvc\View\View
         $this->dic = new \LwEvents\Services\dic();
         $this->systemConfiguration = $this->dic->getConfiguration();
         $this->view = new \lw_view(dirname(__FILE__) . '/templates/TeaserList.tpl.phtml');
+        $this->view->PrepareEventDateOutputHelper = new \LwEvents\View\Helper\PrepareEventDateOutputHelper();
+        $this->view->CalendarOutputHelper = new \LwEvents\View\Helper\CalendarOutputHelper();
     }
 
     public function setConfiguration($configuration)
@@ -39,9 +41,12 @@ class TeaserList extends \LWmvc\View\View
 
     public function render()
     {
+        if ($this->configuration->getValueByKey("usecss")) {
+            $response = \lw_registry::getInstance()->getEntry('response');
+            $response->addHeaderItems('css', file_get_contents(dirname(__FILE__) . '/css/TeaserList.css'));
+        }
         $this->view->configuration = $this->configuration;
         $this->view->lang = $this->configuration->getValueByKey("language");
-        $this->view->usecss = $this->configuration->getValueByKey("usecss");
         $this->view->calendar = $this->configuration->getValueByKey("calendar");
         $this->view->teaserelements = $this->configuration->getValueByKey("teaserelements");
         $this->view->mediaUrl = $this->systemConfiguration['url']['media'];

@@ -1,74 +1,30 @@
-<?php 
-function lwEventGetBackUrl($entry)
-{
-    if ($entry->getValueByKey("opt4number") < date("Ymd") && $entry->getValueByKey("opt4number")) {
-        return \lw_page::getInstance()->getUrl(array("cmd"=>"showArchive", "year" => substr($entry->getValueByKey("opt2number"), 0, 4))); 
-    }
-    else {
-        return \lw_page::getInstance()->getUrl(array("cmd"=>"showList")); 
-    }
-}
-
-function lwEventGetDateOutput($entry)
-{
-    $date2 = "";
-    if ($entry->getValueByKey("opt4number") != $entry->getValueByKey("opt2number")) {
-        $date2 = ' - '.lw_object::formatDate($entry->getValueByKey('opt4number'));
-    }
-    return lw_object::formatDate($entry->getValueByKey('opt2number')).$date2;
-}
-?>
-<?php if($this->usecss): ?>
-<style>
-    .clearfix:after {
-        content: ".";
-        display: block;
-        clear: both;
-        visibility: hidden;
-        line-height: 0;
-        height: 0;
-    }
-
-    .back {
-        border-bottom:1px dotted #627D90;
-        padding-bottom:10px;
-        height: 10px;
-    }
-
-    .back a.menu{
-        padding: 0 10px;
-        background-color: #F57912;
-        color: #FFF;
-        margin-left: 5px;
-    }
-    div.item{position: relative;}
-
-    div.item img.events_logo{
-        float: left;
-        max-width: 170px;
-        height: auto;
-    }
-</style>
-<?php endif; ?>
-<div id="lwevents">
+<div id="LwEvents">
     
-    <div id="back">
-        <a href="<?php echo lwEventGetBackUrl($this->entity); ?>"> <?php if ($this->lang == "en"): ?>back<?php else: ?>zur&uuml;ck<?php endif; ?></a>
+    <div class="LwEvents_BackToEventsList">
+        <a class="LwEvents_ButtonBackToEventsList" href="<?php echo $this->PrepareGetBackUrlFromDetailHelper->execute($this->entity); ?>">
+        <span><?php if ($this->lang == "en"): ?>back<?php else: ?>zur&uuml;ck<?php endif; ?></span>
+        </a>
     </div>
 
-    <div class="item">
+    <div class="LwEvents_EntryDetail">
+    
+        <?php if ($this->entity->getValueByKey("opt1file")) : ?>
         <div class="clearfix">
-            <?php if ($this->entity->getValueByKey("opt1file")) : ?>
-                <img class="events_logo" src="<?php echo $this->config['url']['resource']."lw_events/".$this->entity->getValueByKey("opt1file"); ?>" >
-            <?php endif; ?>
-            <div class="events_date"><?php echo lwEventGetDateOutput($this->entity); ?></div>
-
-            <h1 class="events_headline"><?php echo $this->entity->getValueByKey("opt1text"); ?></h1>
-            <h2 class="events_location"><?php echo $this->entity->getValueByKey("opt2text"); ?></h2>
-
+            <img class="LwEvents_Logo" src="<?php echo $this->config['url']['resource'].'lw_events/'.$this->entity->getValueByKey("opt1file"); ?>" >
+            <div class="LwEvents_EntryWithLogo" style="float:left;width: <?php echo $this->PrepareLogoWidthHelper->execute($this->config, $this->entity); ?>px;">
+        <?php endif; ?>                        
+                <div class="LwEvents_EntryDate">
+                    <?php echo $this->PrepareEventDateOutputHelper->execute($this->entity); ?>
+                </div>
+                <h2 class="LwEvents_EntryTitle"><?php echo $this->entity->getValueByKey("opt1text"); ?></h2>
+                <?php if(strlen($this->entity->getValueByKey("opt2text"))>0): ?><div class="LwEvents_EntryLocation"><?php echo $this->entity->getValueByKey("opt2text"); ?></div><?php endif; ?>
+        <?php if ($this->entity->getValueByKey("opt1file")) : ?>
+            </div>
         </div>
-        <div class="events_detailtext">
-            <p><?php echo $this->entity->getValueByKey("opt1clob"); ?></p>
+        <?php endif; ?>
+
+        <div class="LwEvents_EntryTeaserText">
+            <?php echo $this->entity->getValueByKey("opt1clob"); ?>
         </div>
     </div>
     

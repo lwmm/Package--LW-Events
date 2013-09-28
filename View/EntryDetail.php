@@ -10,6 +10,9 @@ class EntryDetail extends \LWmvc\View\View
         $this->dic = new \LwEvents\Services\dic();
         $this->systemConfiguration = $this->dic->getConfiguration();
         $this->view = new \lw_view(dirname(__FILE__).'/templates/EntryDetail.tpl.phtml');
+        $this->view->PrepareLogoWidthHelper = new \LwEvents\View\Helper\PrepareLogoWidthHelper();
+        $this->view->PrepareEventDateOutputHelper = new \LwEvents\View\Helper\PrepareEventDateOutputHelper();
+        $this->view->PrepareGetBackUrlFromDetailHelper = new \LwEvents\View\Helper\PrepareGetBackUrlFromDetailHelper();
     }
 
     public function setConfiguration($configuration)
@@ -20,7 +23,10 @@ class EntryDetail extends \LWmvc\View\View
     public function render()
     {
         $this->view->lang = $this->configuration->getValueByKey("language");
-        $this->view->usecss = $this->configuration->getValueByKey("usecss");
+        if ($this->configuration->getValueByKey("usecss")) {
+            $response = \lw_registry::getInstance()->getEntry('response');
+            $response->addHeaderItems('css', file_get_contents(dirname(__FILE__) . '/css/EntryDetail.css'));
+        }
         return $this->view->render();
     }
 }
