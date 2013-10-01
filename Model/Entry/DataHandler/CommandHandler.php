@@ -50,7 +50,7 @@ class CommandHandler extends \LWmvc\Model\DataCommandHandler
         $ok3 = $this->db->saveClob($this->db->gt('lw_master'), 'opt2clob', $this->db->quote($array['opt2clob']), $id);
         
         if ($id && $array['opt1file']['size'] > 0) {
-            $this->saveLogo($id, $array);
+            $this->saveLogo($id, $array['opt1file']);
         }
         return $id;
     }
