@@ -111,7 +111,7 @@ if ($this->collection->count()>0) :
                 $class = "intern";
             }
             if ($entry->getValueByKey("opt5number") == 1) {
-                $targetUrl = lw_page::getInstance()->getUrl(array("cmd"=>"showDetail", "id"=>$entry->getValueByKey("id")));
+                $targetUrl = lw_page::getInstance($this->targetid)->getUrl(array("cmd"=>"showDetail", "id"=>$entry->getValueByKey("id")));
                 $class = "intern";
             }
             ?>

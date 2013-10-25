@@ -27,6 +27,7 @@ class CalendarOutputHelper
         $this->view->mediaUrl = $this->systemConfiguration['url']['media'];
         $this->view->collection = $collection;
         $this->view->lang = $configuration->getValueByKey("language");
+        $this->view->targetid = $configuration->getValueByKey("targetid");
         
         return $this->view->render();
     }

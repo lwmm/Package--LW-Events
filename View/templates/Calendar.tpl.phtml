@@ -96,7 +96,7 @@
                             var url = '<?php echo $this->baseUrlWithoutIndex ?>' + parray[i]['pageid'];
                             var urltype = 'intern';
                         } else if (String(parray[i]['exturl']) === "") {
-                            var url = '<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showDetail")); ?>&id=' + parray[i]['id'];
+                            var url = '<?php echo lw_page::getInstance($this->targetid)->getUrl(array("cmd"=>"showDetail")); ?>&id=' + parray[i]['id'];
                             var urltype = 'intern';
                         } else if (String(parray[i]['exturl']) !== "") {
                             var url = parray[i]['exturl'];
