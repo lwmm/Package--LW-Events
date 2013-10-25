@@ -1,5 +1,77 @@
 <?php 
 if ($this->calendar) {
+?>
+<?php if($this->usecss): ?>
+<style>
+    #veranstaltungsteaser .veranstaltung{
+        border-top:1px solid #a2b2bf;
+        padding:6px 16px;
+    }
+    #veranstaltungsteaser .lightblue{color:#627D90;}
+
+    #veranstaltungen{position: relative;}
+
+    #veranstaltungen #infobox{
+        position: absolute;
+        top: -1px;
+        left: -205px;
+        min-height: 230px;
+        width: 200px;
+        background-color: #F7F7F7;
+        border: 2px solid #a2b2bf;
+        border-radius: 10px;
+        color: #666;
+        padding-top: 5px;
+        display: none;
+
+    }
+
+    #veranstaltungen #infobox #date{
+        padding-left: 10px;
+        margin: 20px 0 5px 0;
+    }
+
+    #veranstaltungen #infobox #close{
+        cursor: pointer;
+        padding-left: 5px;
+    }
+
+    #veranstaltungen #infobox .calelement{
+        border-top: 1px solid #a2b2bf;
+        padding: 15px 0;
+    }
+    #veranstaltungen #infobox .calelement h2{margin: 0;}
+
+    #veranstaltungen #infobox .calelement h1, #veranstaltungen #infobox .calelement h2{padding: 0 10px;}
+
+    #hiddenCalElement{display: none;}
+
+
+    .close {
+        color: #000000;
+        float: right;
+        font-size: 20px;
+        font-weight: bold;
+        line-height: 20px;
+        text-shadow: 0 1px 0 #FFFFFF;
+        font-family: Verdana,Helvetica,Arial,sans-serif;
+        padding-right: 10px;
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+        filter: alpha(opacity=20);
+        -moz-opacity: 0.2;
+        -khtml-opacity: 0.2;
+        opacity: 0.2;
+    }
+    .close:hover{
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+        filter: alpha(opacity=100);
+        -moz-opacity: 1;
+        -khtml-opacity: 1;
+        opacity: 1;
+    }
+</style>
+<?php endif; ?>  
+<?php
     echo $this->CalendarOutputHelper->execute($this->configuration, $this->collection);
 }
 

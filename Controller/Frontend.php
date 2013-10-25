@@ -133,6 +133,8 @@ class Frontend extends \LWmvc\Controller\Controller
         $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getIsDeletableSpecification');
         $view->setIsDeletableSpecification($response->getDataByKey('isDeletableSpecification'));
         
+        $view->setAdmin($this->isAdmin());
+        
         return $this->returnRenderedView($view);    
     }
      

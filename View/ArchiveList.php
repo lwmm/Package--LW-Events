@@ -30,6 +30,19 @@ class ArchiveList extends \LWmvc\View\View
         $this->systemConfiguration = $this->dic->getConfiguration();
         $this->auth = $this->dic->getLwAuth();
         $this->view = new \lw_view(dirname(__FILE__) . '/templates/EntryList.tpl.phtml');
+        $this->view->PrepareEntryTextAndMoreLinkHelper = new \LwEvents\View\Helper\PrepareEntryTextAndMoreLinkHelper();
+        $this->view->PrepareEventDateOutputHelper = new \LwEvents\View\Helper\PrepareEventDateOutputHelper();
+        $this->view->PrepareLogoWidthHelper = new \LwEvents\View\Helper\PrepareLogoWidthHelper();
+    }
+    
+    public function setAdmin($admin)
+    {
+        $this->admin = $admin;
+    }
+
+    public function isAdmin()
+    {
+        return $this->admin;
     }
 
     public function setConfiguration($configuration)
@@ -49,9 +62,11 @@ class ArchiveList extends \LWmvc\View\View
 
     public function render()
     {
+        if ($this->isAdmin()) {
+            $this->view->admin = true;
+        }
         $this->view->archiveView = true;
         $this->view->addUrl = \lw_page::getInstance()->getUrl(array("cmd"=>"showAddForm"));
-        $this->view->admin = true;
         $this->view->listId = $this->listId;
         $this->view->configuration = $this->configuration;
         $this->view->lang = $this->configuration->getValueByKey("language");
