@@ -45,12 +45,6 @@ class TeaserList extends \LWmvc\View\View
             $response = \lw_registry::getInstance()->getEntry('response');
             $response->addHeaderItems('css', file_get_contents(dirname(__FILE__) . '/css/TeaserList.css'));
         }
-        if ($this->configuration->getValueByKey("targetid") > 0) {
-            $this->view->targetid = $this->configuration->getValueByKey("targetid"); 
-        }
-        else {
-            $this->view->targetid = false;
-        }
         $this->view->configuration = $this->configuration;
         $this->view->lang = $this->configuration->getValueByKey("language");
         $this->view->calendar = $this->configuration->getValueByKey("calendar");

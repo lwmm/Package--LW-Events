@@ -23,6 +23,7 @@ class EntryDetail extends \LWmvc\View\View
     public function render()
     {
         $this->view->lang = $this->configuration->getValueByKey("language");
+        $this->view->ical = $this->configuration->getValueByKey("useical");
         if ($this->configuration->getValueByKey("usecss")) {
             $response = \lw_registry::getInstance()->getEntry('response');
             $response->addHeaderItems('css', file_get_contents(dirname(__FILE__) . '/css/EntryDetail.css'));

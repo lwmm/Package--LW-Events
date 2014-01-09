@@ -58,9 +58,6 @@ a.button {
 }
 
 img.ui-datepicker-trigger {
-    position: absolute;
-    top: 17px;
-    left: 90px;
     cursor: pointer;
 }
 

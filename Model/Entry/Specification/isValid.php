@@ -15,6 +15,7 @@ class isValid extends \LWmvc\Model\Validator
                 "id",
                 "opt1number",
                 "opt2number",
+                "opt4number",
                 "opt1bool",
                 "opt1text",
                 "opt2text",
@@ -133,6 +134,30 @@ class isValid extends \LWmvc\Model\Validator
         return true;
     }
     
+    public function opt4numberValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+               
+        if (!$value) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        
+        $maxlength = 8;
+        if (!$this->hasMaxlength($value, array("maxlength"=>$maxlength)) ) {
+            $this->addError($key, 'lwmvc_2', array("maxlength"=>$maxlength));
+            return false;
+        }
+        
+        $startdate = trim($object->getValueByKey("opt2number"));
+        if($value < $startdate){
+            $this->addError($key, "ENDBEFORESTART");
+            return false;
+        }
+        
+        return true;
+    }
+    
     public function opt1clobValidate($key, $object)
     {
         $value = trim($object->getValueByKey($key));
@@ -145,6 +170,7 @@ class isValid extends \LWmvc\Model\Validator
 
     public function opt2clobValidate($key, $object)
     {
+        return true;
         $value = trim($object->getValueByKey($key));
         if (!$value && ($object->getValueByKey('opt5number') == 2 || $object->getValueByKey('opt5number') == 3)) {
             $this->addError($key, 'lwmvc_4');

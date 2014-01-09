@@ -113,6 +113,13 @@ $(document).ready(function(){
                 </div>
             </div>
             
+            <div class="control-group">
+                <label class="control-label" for="useical">iCal anbieten ?</label>
+                <div class="controls">
+                    <input type="checkbox" id="useical" name="useical" value="1" <?php if ($this->entity->getValueByKey('useical')): ?> checked="checked" <?php endif; ?> >
+                </div>
+            </div>
+            
             <hr>
             <div class="description"><b>Layout der Teaseransicht ist nur f&uuml;r den Teaserbereich optimiert!</b></div>
             <div class="control-group">

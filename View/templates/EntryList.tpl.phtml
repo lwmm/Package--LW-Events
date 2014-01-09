@@ -1,3 +1,4 @@
+<link rel="alternate" type="application/rss+xml" title="RSS" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"rss"));?>">
 <div id="LwEvents">
 
     <?php if($this->archiveView): ?>
@@ -30,11 +31,14 @@
         
     </div>
     <?php else: ?>
+        <div class="LwEvents_Admin">
         <?php if ($this->admin) : ?>
-    <div class="LwEvents_Admin">
-        <a class="LwEvents_AddButton" href="<?php echo $this->addUrl; ?>"><span><?php if ($this->lang == "en"): ?>add new event<?php else: ?>neuen Termin anlegen<?php endif; ?></span></a>
-    </div>
+            <a class="LwEvents_AddButton" href="<?php echo $this->addUrl; ?>"><span><?php if ($this->lang == "en"): ?>add new event<?php else: ?>neuen Termin anlegen<?php endif; ?></span></a>
         <?php endif; ?>
+        <?php if ($this->ical) : ?>
+            <a class="LwEvents_AddButton ICalAll" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"downloadCompleteICals")); ?>"><span><?php if ($this->lang == "en"): echo "download all events"; else: echo "alle Termine herunterladen"; endif; ?></span></a>
+        <?php endif; ?>
+        </div>
     <?php endif; ?>
 
     <div id="LwEvents_MainList">
@@ -44,8 +48,8 @@
         <div class="LwEvents_EventEntry">
             <?php if ($this->admin) : ?>
             <div class="LwEvents_Admin">
-                <a class="LwEvents_DeleteButton" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"deleteEntry", "id" => $entry->getValueByKey('id'))); ?>" onclick="return confirm('Diesen Eintrag wirklich l&ouml;schen ?');"><span><?php if ($this->lang == "en"): ?>delete<?php else: ?>l&ouml;schen<?php endif; ?></span></a>
-                <a class="LwEvents_EditButton" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"showEditEntryForm", "id" => $entry->getValueByKey('id'))); ?>"><span><?php if ($this->lang == "en"): ?>edit<?php else: ?>bearbeiten<?php endif; ?></span></a>
+                    <a class="LwEvents_DeleteButton" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"deleteEntry", "id" => $entry->getValueByKey('id'))); ?>" onclick="return confirm('Diesen Eintrag wirklich l&ouml;schen ?');"><span><?php if ($this->lang == "en"): ?>delete<?php else: ?>l&ouml;schen<?php endif; ?></span></a>
+                    <a class="LwEvents_EditButton" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"showEditEntryForm", "id" => $entry->getValueByKey('id'))); ?>"><span><?php if ($this->lang == "en"): ?>edit<?php else: ?>bearbeiten<?php endif; ?></span></a>
             </div>
             <?php endif; ?>
             <?php if ($entry->getValueByKey("opt1file")) : ?>
@@ -53,11 +57,10 @@
                 <img class="LwEvents_Logo" src="<?php echo $this->config['url']['resource'].'lw_events/'.$entry->getValueByKey("opt1file"); ?>" >
                 <div class="LwEvents_EntryWithLogo" style="float:left;width: <?php echo $this->PrepareLogoWidthHelper->execute($this->config, $entry); ?>px;">
             <?php endif; ?>                        
-                    <div class="LwEvents_EntryDate">
-                        <?php  echo $this->PrepareEventDateOutputHelper->execute($entry); ?>
-                    </div>
                     <h2 class="LwEvents_EntryTitle"><?php echo $entry->getValueByKey("opt1text"); ?></h2>
-                    <?php if(strlen($entry->getValueByKey("opt2text"))>0 && $entry->getValueByKey("opt2text") != "."): ?><div class="LwEvents_EntryLocation"><?php echo $entry->getValueByKey("opt2text"); ?></div><?php endif; ?>
+                    <div class="LwEvents_EntryDate">
+                        <?php echo $this->PrepareEventDateOutputHelper->execute($entry); ?><?php if(strlen($entry->getValueByKey("opt2text"))>0 && $entry->getValueByKey("opt2text") != "."): ?><span class="LwEvents_EntryLocation">, <?php echo $entry->getValueByKey("opt2text"); ?></span><?php endif; ?>
+                    </div>
             <?php if ($entry->getValueByKey("opt1file")) : ?>
                 </div>
             </div>
@@ -65,9 +68,13 @@
 
             <div class="LwEvents_EntryTeaserText">
                 <?php  $array = $this->PrepareEntryTextAndMoreLinkHelper->execute($entry); 
-                if(strlen($array['text'])>0): echo $array['text']; endif; ?>
+                if(strlen($array['text'])>0): echo $array['text']; endif; ?><br>
                 <a class="LwEvents_EntryDetailLink <?php echo $array['class']; ?>" <?php if($array['class'] == "extern"): ?>target="_blank"<?php endif; ?> href="<?php echo $array['targeturl']; ?>"><span>[<?php if ($this->lang == "en"): ?>more<?php else: ?>mehr<?php endif; ?>]</span></a>
+                <?php if ($this->ical) : ?>
+                <a class="LwEvents_EditButton ICalSingle" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"downloadICal", "id" => $entry->getValueByKey('id'))); ?>"><span>[iCal <?php if ($this->lang == "en"): ?> download<?php else: ?>herunterladen<?php endif; ?>]</span></a>
+                <?php endif; ?>
             </div>
+            
         </div>
         <?php endforeach; ?>
         <?php else : ?>

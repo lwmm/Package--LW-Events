@@ -4,6 +4,9 @@
         <a class="LwEvents_ButtonBackToEventsList" href="<?php echo $this->PrepareGetBackUrlFromDetailHelper->execute($this->entity); ?>">
         <span><?php if ($this->lang == "en"): ?>back<?php else: ?>zur&uuml;ck<?php endif; ?></span>
         </a>
+        <?php if($this->ical): ?>
+            <a class="LwEvents_ButtonBackToEventsList" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"downloadICal", "id" => $this->entity->getValueByKey('id'))); ?>"><span>[iCal <?php if ($this->lang == "en"): ?> download<?php else: ?>herunterladen<?php endif; ?>]</span></a>
+        <?php endif; ?>
     </div>
 
     <div class="LwEvents_EntryDetail">

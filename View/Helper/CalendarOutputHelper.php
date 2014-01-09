@@ -22,12 +22,12 @@ class CalendarOutputHelper
         $this->configuration = $configuration;
     }
     
-    public function execute($configuration, $collection)
+    public function execute($configuration, $collection, $baseUrlWithoutIndex)
     {
         $this->view->mediaUrl = $this->systemConfiguration['url']['media'];
         $this->view->collection = $collection;
         $this->view->lang = $configuration->getValueByKey("language");
-        $this->view->targetid = $configuration->getValueByKey("targetid");
+        $this->view->baseUrlWithoutIndex = $baseUrlWithoutIndex;
         
         return $this->view->render();
     }

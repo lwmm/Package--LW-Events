@@ -27,6 +27,7 @@
         $("#datepicker_show2").datepicker("option", "dateFormat", "dd.mm.yy");
 
         var date2 = "<?php echo $this->formatDate($this->entity->getValueByKey('opt4number')); ?>";
+        console.log('date2: '+date2);
         $("#datepicker_show2").datepicker("setDate", date2);
 
         <?php if ($this->entity->getValueByKey("opt5number") == 2) : ?>
@@ -40,7 +41,6 @@
         <?php else : ?>
         $('#containerMainText').show();
         <?php endif; ?>
-            
             
         $('#typetext').click(function(){
             $('#containerCms').hide();
@@ -70,7 +70,6 @@
         theme: "advanced",
 	    theme_advanced_buttons1 : "bold,italic,bullist,numlist,link,unlink,undo,redo,removeformat",
         language: "de",
-        content_css : "https://www.casym.eu/lw_resource/tinyeditorareaevents.css",
         convert_urls: false,
         relative_urls: false,
         remove_script_host: false
@@ -125,17 +124,21 @@
                     <input id="datepicker_show" type="text" value="" disabled>
                     <input id="datepicker" type="hidden" name="opt2number" value="">
                 </div>
+                <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2number']); ?>
                 
                 <div class="LwEventsForm_date LwEventsForm_DateTo">
                     <label for="datepicker"><?php if ($this->lang == "en"): ?>Date:<span>(End)</span><?php else: ?>Datum:<span>(bis)</span><?php endif; ?></label><br>
                     <input id="datepicker_show2" type="text" value="" disabled>
                     <input id="datepicker2" type="hidden" name="opt4number" value="">
                 </div>
+                <?php if(isset($this->errors["opt4number"]["ENDBEFORESTART"])): ?>
+                    <div class="alert alert-block alert-error">
+                        <h3 class="alert-heading"><?php if ($this->lang == "en"): ?>Error<?php else: ?>Fehler<?php endif; ?>:</h3>
+                        <p><?php if ($this->lang == "en"): ?>The end of the event can not take place before the event has started.<?php else: ?>Das Enddatum darf nicht kleiner sein als das Startdatum.<?php endif; ?></p>
+                    </div>
+                <?php endif; ?>
                 
             </div>
-            <div style="clear:both;">&nbsp;</div>
-            
-            <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2number']); ?>
 
             <!-- Überschrift -->
 
@@ -194,7 +197,7 @@
 
             <div id="containerMainText" class="LwEventsForm LwEvents_MainText">
                 <label for="mainText">Text:</label><br>
-                <textarea style="width:495px; height:250px;" id="mainText" class="text mceEditor beliebig" name="opt1clob"><?php echo $this->entity->getValueByKey("opt1clob"); ?></textarea><br>
+                <textarea style="width:495px; height:250px;" id="mainText" class="text mceEditor beliebig" name="opt1clob"><?php echo $this->entity->getValueByKey("opt1clob"); ?></textarea>
                 <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1clob']); ?>
             </div>
 
@@ -202,7 +205,7 @@
 
             <div id="containerTeasertext" class="LwEventsForm LwEvents_TeaserText">
                 <label for="teasertext">Teasertext:</label><br>
-                <textarea style="width:495px; height:250px;" id="teasertext" class="text mceEditor beliebig" name="opt2clob"><?php echo $this->entity->getValueByKey("opt2clob"); ?></textarea><br>
+                <textarea style="width:495px; height:250px;" id="teasertext" class="text mceEditor beliebig" name="opt2clob"><?php echo $this->entity->getValueByKey("opt2clob"); ?></textarea>
                 <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2clob']); ?>
             </div>
             

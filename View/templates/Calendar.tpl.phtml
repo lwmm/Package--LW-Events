@@ -38,7 +38,7 @@
             echo "eventArray[" . $i . "]['pageid'] = " . $entry->getValueByKey("opt1number") . ";" . PHP_EOL;
             echo "eventArray[" . $i . "]['startdate'] = " . $entry->getValueByKey("opt2number") . ";" . PHP_EOL;
             echo "eventArray[" . $i . "]['enddate'] = " . $entry->getValueByKey("opt4number") . ";" . PHP_EOL;
-            echo "eventArray[" . $i . "]['headline'] ='" . $entry->getValueByKey("opt1text") . "';" . PHP_EOL;
+            echo "eventArray[" . $i . "]['headline'] ='" . $this->f($entry->getValueByKey("opt1text")) . "';" . PHP_EOL;
             echo "eventArray[" . $i . "]['exturl'] ='" . $entry->getValueByKey("opt3text") . "';" . PHP_EOL;
             echo "" . PHP_EOL;
             $i++;
@@ -96,7 +96,7 @@
                             var url = '<?php echo $this->baseUrlWithoutIndex ?>' + parray[i]['pageid'];
                             var urltype = 'intern';
                         } else if (String(parray[i]['exturl']) === "") {
-                            var url = '<?php echo lw_page::getInstance($this->targetid)->getUrl(array("cmd"=>"showDetail")); ?>&id=' + parray[i]['id'];
+                            var url = '<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showDetail")); ?>&id=' + parray[i]['id'];
                             var urltype = 'intern';
                         } else if (String(parray[i]['exturl']) !== "") {
                             var url = parray[i]['exturl'];

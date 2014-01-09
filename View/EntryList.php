@@ -64,6 +64,7 @@ class EntryList extends \LWmvc\View\View
         }
         $this->view->configuration = $this->configuration;
         $this->view->lang = $this->configuration->getValueByKey("language");
+        $this->view->ical = $this->configuration->getValueByKey("useical");
         if ($this->configuration->getValueByKey("usecss")) {
             $response = \lw_registry::getInstance()->getEntry('response');
             $response->addHeaderItems('css', file_get_contents(dirname(__FILE__) . '/css/EntryList.css'));
