@@ -1,0 +1,1492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Updates>
+    <FileUpdates>
+        <file>
+            <md5>42c2f0ebd4dd5ee3fbbde4552a3903e5</md5>
+            <path>[package]LwEvents/Controller/Frontend.php</path>
+            <content><![CDATA[<?php
+
+/* * ************************************************************************
+ *  Copyright notice
+ *
+ *  Copyright 2013 Logic Works GmbH
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *  
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *  
+ * ************************************************************************* */
+
+namespace LwEvents\Controller;
+
+class Frontend extends \LWmvc\Controller\Controller
+{
+
+    public function __construct($cmd, $oid)
+    {
+        parent::__construct($cmd, $oid);
+        $this->dic = new \LwEvents\Services\dic();
+        $this->response = \lw_registry::getInstance()->getEntry("response");
+        $this->request = \lw_registry::getInstance()->getEntry("request");
+        $this->config = $this->dic->getConfiguration();
+        $this->response->useJQuery();
+        $this->response->useJQueryUI();
+    }
+
+    public function setPluginParams($params)
+    {
+        if (is_array($params) && $params['language']) {
+            $dto = new \LWmvc\Model\DTO($params);
+            $this->listConfig = new \LwEvents\Model\Configuration\Object\configuration($id);
+            $this->listConfig->setDTO($dto);
+        }
+    }
+
+    public function setAdmin($bool)
+    {
+        if ($bool === true) {
+            $this->admin = true;
+        } else {
+            $this->admin = false;
+        }
+    }
+
+    public function isAdmin()
+    {
+        return $this->admin;
+    }
+
+    public function execute()
+    {
+        if (!$this->listConfig) {
+            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Configuration', 'getConfigurationEntityById', array("id" => $this->getContentObjectId()));
+            $this->listConfig = $response->getDataByKey('ConfigurationEntity');
+        }
+
+        if ($this->listConfig->getValueByKey("admin") == 1 || \lw_registry::getInstance()->getEntry("auth")->isLoggedIn()) {
+            $this->setAdmin(true);
+        }
+
+        if ($this->listConfig->getValueByKey('teaserview') == 1) {
+            return $this->showTeaserList();
+        }
+
+        $method = $this->getCommand() . "Action";
+        if (method_exists($this, $method)) {
+            return $this->$method();
+        } else {
+            die("command " . $method . " doesn't exist");
+        }
+    }
+
+    protected function getArchiveYear()
+    {
+        $year = $this->request->getInt("year");
+        if (!$year) {
+            $year = date("Y");
+        }
+        return $year;
+    }
+
+    protected function showListAction()
+    {
+        $view = new \LwEvents\View\EntryList();
+        $view->setConfiguration($this->listConfig);
+
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getListEntriesCollection', array("configuration" => $this->listConfig));
+        $view->setCollection($response->getDataByKey('listEntriesCollection'));
+
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getIsDeletableSpecification');
+        $view->setIsDeletableSpecification($response->getDataByKey('isDeletableSpecification'));
+
+        $view->setAdmin($this->isAdmin());
+
+        return $this->returnRenderedView($view);
+    }
+
+    protected function showTeaserList()
+    {
+        $view = new \LwEvents\View\TeaserList();
+        $view->setConfiguration($this->listConfig);
+
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getListEntriesCollection', array("configuration" => $this->listConfig));
+        $view->setCollection($response->getDataByKey('listEntriesCollection'));
+
+        return $this->returnRenderedView($view);
+    }
+
+    protected function showArchiveAction()
+    {
+        $view = new \LwEvents\View\ArchiveList();
+        $view->setConfiguration($this->listConfig);
+        $view->setArchiveYear($this->getArchiveYear());
+
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getArchivedListEntriesCollection', array("configuration" => $this->listConfig, "year" => $this->getArchiveYear()));
+        $view->setCollection($response->getDataByKey('listEntriesCollection'));
+
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getAllAvailableYearsArray', array("configuration" => $this->listConfig));
+        $view->setAvailableYearsArray($response->getDataByKey('availableYearsArray'));
+
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getIsDeletableSpecification');
+        $view->setIsDeletableSpecification($response->getDataByKey('isDeletableSpecification'));
+
+        $view->setAdmin($this->isAdmin());
+
+        return $this->returnRenderedView($view);
+    }
+
+    protected function showDetailAction()
+    {
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityById', array("id" => $this->request->getInt("id"), "listId" => $this->getContentObjectId()));
+        $entity = $response->getDataByKey('EntryEntity');
+        $entity->setId($this->request->getInt("id"));
+
+        $view = new \LwEvents\View\EntryDetail();
+        $view->setEntity($entity);
+        $view->setConfiguration($this->listConfig);
+        return $this->returnRenderedView($view);
+    }
+
+    protected function addEntryAction()
+    {
+        if ($this->isAdmin()) {
+            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'add', array("configuration" => $this->listConfig, "userId" => \lw_in_auth::getInstance()->getUserdata("id")), array('postArray' => $this->request->getPostArray(), 'opt1file' => $this->request->getFileData('opt1file'), 'opt2file' => $this->request->getFileData('opt2file')));
+            if ($response->getParameterByKey("error")) {
+                return $this->showAddFormAction($response->getDataByKey("error"));
+            }
+            return $this->buildReloadResponse(array("cmd" => "showList"));
+        }
+    }
+
+    protected function showEditEntryFormAction($error = false)
+    {
+        if ($this->isAdmin()) {
+            $formView = new \LwEvents\View\EntryForm('edit');
+
+            if ($error) {
+                $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityById', array("id" => $this->request->getInt("id"), "listId" => $this->getContentObjectId()));
+                $formView->setOldEntity($response->getDataByKey('EntryEntity'));
+                $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityFromPostArray', array(), array("postArray" => $this->request->getPostArray()));
+            } else {
+                $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityById', array("id" => $this->request->getInt("id"), "listId" => $this->getContentObjectId()));
+                $formView->setOldEntity($response->getDataByKey('EntryEntity'));
+            }
+            $entity = $response->getDataByKey('EntryEntity');
+            $entity->setId($this->request->getInt("id"));
+
+            $formView->setEntity($entity);
+            $formView->setConfiguration($this->listConfig);
+            $formView->setErrors($error);
+            return $this->returnRenderedView($formView);
+        }
+    }
+
+    protected function saveEntryAction()
+    {
+        if ($this->isAdmin()) {
+            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'save', array("id" => $this->request->getInt("id"), "configuration" => $this->listConfig, "userId" => \lw_in_auth::getInstance()->getUserdata("id")), array('postArray' => $this->request->getPostArray(), 'opt1file' => $this->request->getFileData('opt1file')));
+            if ($response->getParameterByKey("error")) {
+                return $this->showEditEntryFormAction($response->getDataByKey("error"));
+            }
+            return $this->buildReloadResponse(array("cmd" => "showEditEntryForm", "id" => $this->request->getInt("id")));
+        }
+    }
+
+    protected function showAddFormAction($error = false)
+    {
+        if ($this->isAdmin()) {
+            $formView = new \LwEvents\View\EntryForm("add");
+            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityFromPostArray', array(), array("postArray" => $this->request->getPostArray()));
+            $formView->setConfiguration($this->listConfig);
+            $formView->setEntity($response->getDataByKey('EntryEntity'));
+            $formView->setOldEntity($response->getDataByKey('EntryEntity'));
+            $formView->setErrors($error);
+            return $this->returnRenderedView($formView);
+        }
+    }
+
+    protected function deleteLogoAction()
+    {
+        if ($this->isAdmin()) {
+            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'deleteLogo', array("id" => $this->request->getInt("id")));
+            return $this->buildReloadResponse(array("cmd" => "showEditEntryForm", "id" => $this->request->getInt("id")));
+        }
+    }
+
+    protected function deleteEntryAction()
+    {
+        if ($this->isAdmin()) {
+            $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'delete', array("id" => $this->request->getInt("id")));
+            return $this->buildReloadResponse(array("cmd" => "showList"));
+        }
+    }
+
+    protected function RssAction()
+    {
+        $view = new \LwEvents\View\Rss();
+
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getListEntriesCollection', array("configuration" => $this->listConfig));
+        $view->setCollection($response->getDataByKey('listEntriesCollection'));
+
+        return $this->returnRenderedView($view);
+    }
+
+    protected function downloadICalAction()
+    {
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getEntryEntityById', array("id" => $this->request->getInt("id"), "listId" => $this->getContentObjectId()));
+        $entity = $response->getDataByKey('EntryEntity');
+        
+        $view = new \LwEvents\View\Ical();
+        $view->setEntity($entity);
+        return $this->returnRenderedView($view);
+    }
+    
+    protected function downloadCompleteICalsAction()
+    {
+        $response = \LWmvc\Model\CommandDispatch::getInstance()->execute('LwEvents', 'Entry', 'getListEntriesCollection', array("configuration" => $this->listConfig));
+        $entities = $response->getDataByKey('listEntriesCollection');
+        
+        $view = new \LwEvents\View\Ical();
+        $view->setEntities($entities);
+        return $this->returnRenderedView($view);
+    }
+
+}]]></content>
+        </file>
+        
+        <file>
+            <md5>25741fa29972b142c9b52d061ad8a050</md5>
+            <path>[package]LwEvents/Model/Configuration/CommandResolver/save.php</path>
+            <content><![CDATA[<?php
+
+/* * ************************************************************************
+ *  Copyright notice
+ *
+ *  Copyright 2013 Logic Works GmbH
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *  
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *  
+ * ************************************************************************* */
+
+namespace LwEvents\Model\Configuration\CommandResolver;
+
+class save extends \LWmvc\Model\CommandResolver
+{
+    protected $command;
+
+    public function __construct($command)
+    {
+        parent::__construct($command);
+        $this->baseNamespace = "\\LwEvents\\Model\\Configuration\\";
+        $this->ObjectClass = $this->baseNamespace . "Object\\configuration";
+    }
+
+    public function getInstance($command)
+    {
+        return new save($command);
+    }
+
+    public function resolve()
+    {
+        try {
+            $dataValueObject = new \LWmvc\Model\DTO($this->command->getDataByKey('postArray'));
+            $parameter['language'] = $dataValueObject->getValueByKey("language");
+            $parameter['teaserview'] = $dataValueObject->getValueByKey("teaserview");
+            $parameter['teaserelements'] = $dataValueObject->getValueByKey("teaserelements");
+            $parameter['calendar'] = $dataValueObject->getValueByKey("calendar");
+            $parameter['usecss'] = $dataValueObject->getValueByKey("usecss");
+            $parameter['adminmode'] = $dataValueObject->getValueByKey("adminmode");
+            $parameter['useical'] = $dataValueObject->getValueByKey("useical");
+            $content = false;
+            $result = $this->getCommandHandler()->savePluginData($this->command->getParameterByKey('id'), $parameter, $content);
+            $this->command->getResponse()->setParameterByKey('saved', true);
+        } catch (\LWmvc\Model\validationErrorsException $e) {
+            $this->command->getResponse()->setDataByKey('error', $e->getErrors());
+            $this->command->getResponse()->setParameterByKey('error', true);
+        }
+        return $this->command->getResponse();
+    }
+
+}
+]]></content>
+        </file>
+        
+        <file>
+            <md5>bbcc12bf6061023f8a2250337214b2be</md5>
+            <path>[package]LwEvents/Model/Entry/Specification/isValid.php</path>
+            <content><![CDATA[<?php
+
+namespace LwEvents\Model\Entry\Specification;
+
+define("LW_REQUIRED_ERROR", "1");
+define("LW_MAXLENGTH_ERROR", "2");
+define("LW_BOOL_ERROR", "3");
+define("LW_FILETOOBIG_ERROR", "4");
+
+class isValid extends \LWmvc\Model\Validator
+{
+    public function __construct()
+    {
+        $this->allowedKeys = array(
+                "id",
+                "opt1number",
+                "opt2number",
+                "opt4number",
+                "opt1bool",
+                "opt1text",
+                "opt2text",
+                "opt3text",
+                "opt1file",
+                "opt1clob",
+                "opt2clob");
+        
+        $mvalue = ini_get("upload_max_filesize");
+        if (intval($mvalue) > intval(ini_get("post_max_size"))) $mvalue = ini_get("post_max_size");
+        
+        if(substr($mvalue, -1, 1)=="M") {
+            $mvalue = substr($mvalue, 0, strlen($mvalue)-1)*1024*1024;
+        }
+        elseif(substr($mvalue, -1, 1)=="K") {
+            $mvalue = substr($mvalue, 0, strlen($mvalue)-1)*1024;
+        }
+        elseif(substr($mvalue, -1, 1)=="G") {
+            $mvalue = substr($mvalue, 0, strlen($mvalue)-1)*1024*1024*1024;        
+        }
+        $this->maxfilesize = $mvalue;
+    }
+    
+    static public function getInstance()
+    {
+        return new isValid();
+    }
+    
+    public function setConfiguration($configuration)
+    {
+        $this->configuration = $configuration;
+    }
+    
+    public function isSatisfiedBy(\LwEvents\Model\Entry\Object\entry $object)
+    {
+        $valid = true;
+        foreach($this->allowedKeys as $key){
+            $method = $key."Validate";
+            if (method_exists($this, $method)) {
+                $result = $this->$method($key, $object);
+                if($result == false){
+                    $valid = false;
+                }
+            }
+        }
+        return $valid;
+    }
+
+    public function opt1fileValidate($key, $object)
+    {
+        $ok = true;
+        $array = $object->getValueByKey($key);
+        if (!$array['name']) {
+            return true;
+        }
+        if ($array['size'] > $this->maxfilesize) {
+            $this->addError($key, "lwmvc_17", array("maxsize"=> $this->maxfilesize, "actualsize"=>$array['size']));
+            $ok = false;
+        }
+        $extlist = '.jpg,.jpeg,.gif,.png';
+        $ext = \lw_io::getFileExtension($array['name']);
+        $extarray_u = explode(",", $extlist);
+        foreach($extarray_u as $singleext) {
+            $extarray[] = strtolower(trim($singleext));
+        }
+        if (!in_array('.'.strtolower($ext), $extarray)) {
+            $this->addError($key, "lwmvc_12");
+            $ok = false;
+        }
+        return $ok;
+    }
+        
+    public function opt1textValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+               
+        if (!$value) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        
+        $maxlength = 255;
+        if (!$this->hasMaxlength($value, array("maxlength"=>$maxlength)) ) {
+            $this->addError($key, 'lwmvc_2', array("maxlength"=>$maxlength));
+            return false;
+        }
+        return true;
+    }
+    
+    public function opt2textValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+        
+        $maxlength = 255;
+        if (!$this->hasMaxlength($value, array("maxlength"=>$maxlength)) ) {
+            $this->addError($key, 'lwmvc_2', array("maxlength"=>$maxlength));
+            return false;
+        }
+        return true;
+    }
+
+    public function opt2numberValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+               
+        if (!$value) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        
+        $maxlength = 8;
+        if (!$this->hasMaxlength($value, array("maxlength"=>$maxlength)) ) {
+            $this->addError($key, 'lwmvc_2', array("maxlength"=>$maxlength));
+            return false;
+        }
+        return true;
+    }
+    
+    public function opt4numberValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+               
+        if (!$value) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        
+        $maxlength = 8;
+        if (!$this->hasMaxlength($value, array("maxlength"=>$maxlength)) ) {
+            $this->addError($key, 'lwmvc_2', array("maxlength"=>$maxlength));
+            return false;
+        }
+        
+        $startdate = trim($object->getValueByKey("opt2number"));
+        if($value < $startdate){
+            $this->addError($key, "ENDBEFORESTART");
+            return false;
+        }
+        
+        return true;
+    }
+    
+    public function opt1clobValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+        if (!$value && $object->getValueByKey('opt5number') == 1) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        return true;
+    }
+
+    public function opt2clobValidate($key, $object)
+    {
+        return true;
+        $value = trim($object->getValueByKey($key));
+        if (!$value && ($object->getValueByKey('opt5number') == 2 || $object->getValueByKey('opt5number') == 3)) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        return true;
+    }
+
+    public function opt1numberValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+        if (!$value && $object->getValueByKey('opt5number') == 2) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        return true;
+    }
+    
+    public function opt3textValidate($key, $object)
+    {
+        $value = trim($object->getValueByKey($key));
+        if (!$value && $object->getValueByKey('opt5number') == 3) {
+            $this->addError($key, 'lwmvc_4');
+            return false;
+        }
+        return true;
+    }    
+}
+]]></content>
+        </file>
+        
+        <file>
+            <md5></md5>
+            <path>[package]LwEvents/Services/spn_ical.php</path>
+            <content><![CDATA[<?php
+
+namespace LwEvents\Services;
+
+#require_once 'spn_ical_item.class.php';
+
+class spn_ical
+{
+
+    protected $items;
+
+    const EOL = "\n";
+
+    public function __construct()
+    {
+        $this->items = array();
+    }
+
+    public function getAsString()
+    {
+        $ret = 'BEGIN:VCALENDAR' . self::EOL
+                . 'METHOD:PUBLISH' . self::EOL
+                . 'PRODID:-//LogicWorks GmbH//NONSGML Contentory//EN' . self::EOL
+                . 'VERSION:2.0' . self::EOL;
+
+        if (!empty($this->items)) {
+            foreach ($this->items as $item) {
+                $ret.= $item->getAsString();
+            }
+        }
+        $ret.= 'END:VCALENDAR';
+
+        return $ret;
+    }
+
+    public function sendAsFile($aFilename = 'calendar.ics')
+    {
+        header('Pragma: public');
+        header('Content-Type: text/calendar; charset=UTF-8');
+        header('Content-Disposition: inline; filename="' . $aFilename . '"');
+        echo $this->getAsString();
+    }
+
+    public function add(spn_ical_item $item)
+    {
+        $this->items[] = $item;
+    }
+
+    public function createAndAddItem()
+    {
+        $item = new \LwEvents\Services\spn_ical_item();
+        $this->add($item);
+        return $item;
+    }
+
+}
+]]></content>
+        </file>
+        
+        <file>
+            <md5></md5>
+            <path>[package]LwEvents/Services/spn_ical_item.php</path>
+            <content><![CDATA[<?php
+
+namespace LwEvents\Services;
+
+class spn_ical_item implements \ArrayAccess
+{
+
+    protected $vals;
+
+    const EOL = "\n";
+
+    public function __construct()
+    {
+        $this->resetValues();
+    }
+
+    protected function resetValues()
+    {
+        $this->vals = array();
+        $this['dtstamp'] = date('Ymd') . 'T' . date('His') . 'Z';
+    }
+
+    public function assignDbRow($aRow)
+    {
+        $this->resetValues();
+        $this['summary'] = $aRow['title'];
+        $this['description'] = $aRow['newstext'];
+        $this['location'] = $aRow['location'];
+        $this['contact'] = $aRow['contact'];
+        $this['created'] = $this->formatDateTime($aRow['firstdate']);
+        $this['last-modified'] = $this->formatDateTime($aRow['lastdate']);
+
+        if (!$aRow['eventtime']) {
+            $aRow['eventtime'] = "T0001";
+        }
+
+        $this['dtstart;value=date'] = $this->formatDateTime($aRow['archivedate'] . $aRow['eventtime']);
+        $endDate = $aRow['todate'];
+        if (empty($endDate)) {
+            $endDate = $aRow['archivedate'];
+        }
+        if (!$aRow['eventtotime'] && $aRow['eventtime'] > 0) {
+            $aRow['eventtotime'] = $aRow['eventtime'];
+        }
+
+        if (!$aRow['eventtotime']) {
+            $aRow['eventtotime'] = "T2359";
+        }
+
+        $this['dtend;value=date'] = $this->formatDateTime($endDate . $aRow['eventtotime']);
+
+        $this['uid'] = 'sn_' . $aRow['id'] . '@logic-works.net';
+    }
+
+    protected function formatDateTime($aString)
+    {
+        $tmp = strtr($aString, array(':' => '', ' ' => ''));
+        $ret = substr($tmp, 0, 8);
+        if (strlen($tmp) > 8) {
+            $ret.= 'T' . substr($tmp, -4) . '00 +0100';
+        }
+        return $ret;
+    }
+
+    protected function normalizeKey($aKey)
+    {
+        return strtoupper($aKey);
+    }
+
+    protected function escapeValue($aValue)
+    {
+        $ret = utf8_encode($aValue);
+        //$ret = $aValue;
+        //$ret = html_entity_decode($ret, ENT_QUOTES, 'UTF-8');
+        if (function_exists('mb_convert_encoding')) {
+            //$ret = mb_convert_encoding($ret, 'ISO-8859-15');
+        }
+        $ret = trim($ret);
+        $ret = addcslashes($ret, "\;,\r\n");
+        $ret = chunk_split($ret, 74, "\r\n ");
+        return trim($ret);
+    }
+
+    public function offsetExists($aKey)
+    {
+        return isset($this->vals[$this->normalizeKey($aKey)]);
+    }
+
+    public function offsetGet($aKey)
+    {
+        return $this->vals[$this->normalizeKey($aKey)];
+    }
+
+    public function offsetSet($aKey, $aValue)
+    {
+        $lVal = trim($aValue);
+        $lKey = $this->normalizeKey($aKey);
+        if ('' == $lVal) {
+            unset($this->vals[$lKey]);
+        } else {
+            $this->vals[$lKey] = trim($aValue);
+        }
+    }
+
+    public function offsetUnset($aKey)
+    {
+        unset($this->vals[$this->normalizeKey($aKey)]);
+    }
+
+    public function getAsString()
+    {
+        $ret = 'BEGIN:VEVENT' . self::EOL;
+        foreach ($this->vals as $lKey => $lVal) {
+            $ret.= $lKey . ':' . $this->escapeValue($lVal) . self::EOL;
+        }
+        $ret.= 'END:VEVENT' . self::EOL;
+
+        $ret = str_replace("&#45\;", "-", $ret);
+
+        return $ret;
+    }
+
+}
+]]></content>
+        </file>
+        
+        <file>
+            <md5></md5>
+            <path>[package]LwEvents/View/Ical.php</path>
+            <content><![CDATA[<?php
+
+/* * ************************************************************************
+ *  Copyright notice
+ *
+ *  Copyright 2014 Logic Works GmbH
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *  
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *  
+ * ************************************************************************* */
+
+namespace LwEvents\View;
+
+class Ical extends \LWmvc\View\View
+{
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    public function setEntity($entity)
+    {
+        $this->entity = $entity;
+    }
+
+    public function setEntities($entities)
+    {
+        $this->entities = $entities;
+    }
+
+    public function render()
+    {
+        if ($this->entity) {
+            $values = $this->entity->getValues();
+        } elseif ($this->entities) {
+            foreach ($this->entities as $entity) {
+                $values[] = $entity->getValues();
+            }
+        }
+        if (count($values) > 0) {
+            $cal = new \LwEvents\Services\spn_ical();
+            if ($this->entity) {
+                $item = $cal->createAndAddItem();
+                $item->assignDbRow($this->prepareValues($values));
+            } elseif ($this->entities) {
+                foreach ($values as $value) {
+                    $item = $cal->createAndAddItem();
+                    $item->assignDbRow($this->prepareValues($value));
+                }
+            }
+            $cal->sendAsFile();
+            exit();
+        }
+    }
+
+    protected function prepareValues($values)
+    {
+        $array = array();
+        $array["title"] = $values["opt1text"]; #ueberschrift
+        $array["archivedate"] = $values["opt2number"]; #startdatum
+        $array["todate"] = $values["opt4number"]; #enddatum
+
+        $array["location"] = $values["opt2text"]; #ort
+
+        $array["firstdate"] = $values["lw_first_date"]; #erstelldatum
+        $array["lastdate"] = $values["lw_last_date"]; #letzte aenderung
+
+        return $array;
+    }
+
+}
+]]></content>
+        </file>
+        
+        <file>
+            <md5>cd6720e9008827fa3a97a1a7ea3b415c</md5>
+            <path>[package]LwEvents/View/EntryList.php</path>
+            <content><![CDATA[<?php
+
+/* * ************************************************************************
+ *  Copyright notice
+ *
+ *  Copyright 2013 Logic Works GmbH
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *  
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *  
+ * ************************************************************************* */
+
+namespace LwEvents\View;
+
+class EntryList extends \LWmvc\View\View
+{
+    public function __construct()
+    {
+        parent::__construct('edit');
+        $this->dic = new \LwEvents\Services\dic();
+        $this->systemConfiguration = $this->dic->getConfiguration();
+        $this->auth = $this->dic->getLwAuth();
+        $this->inAuth = $this->dic->getLwInAuth();
+        $this->view = new \lw_view(dirname(__FILE__) . '/templates/EntryList.tpl.phtml');
+        $this->view->PrepareEntryTextAndMoreLinkHelper = new \LwEvents\View\Helper\PrepareEntryTextAndMoreLinkHelper();
+        $this->view->PrepareEventDateOutputHelper = new \LwEvents\View\Helper\PrepareEventDateOutputHelper();
+        $this->view->PrepareLogoWidthHelper = new \LwEvents\View\Helper\PrepareLogoWidthHelper();
+    }
+
+    public function setAdmin($admin)
+    {
+        $this->admin = $admin;
+    }
+
+    public function isAdmin()
+    {
+        return $this->admin;
+    }
+
+    public function setConfiguration($configuration)
+    {
+        $this->configuration = $configuration;
+    }
+
+    public function setListId($id)
+    {
+        $this->listId = $id;
+    }
+
+    public function render()
+    {
+        $this->view->addUrl = \lw_page::getInstance()->getUrl(array("cmd"=>"showAddForm"));
+        if ($this->isAdmin()) {
+            $this->view->admin = true;
+        }
+        $this->view->configuration = $this->configuration;
+        $this->view->lang = $this->configuration->getValueByKey("language");
+        $this->view->ical = $this->configuration->getValueByKey("useical");
+        if ($this->configuration->getValueByKey("usecss")) {
+            $response = \lw_registry::getInstance()->getEntry('response');
+            $response->addHeaderItems('css', file_get_contents(dirname(__FILE__) . '/css/EntryList.css'));
+        }
+        return $this->view->render();
+    }
+}
+]]></content>
+        </file>
+        
+        <file>
+            <md5>b60f3a43f7f01f3651242805650d6925</md5>
+            <path>[package]LwEvents/View/EntryDetail.php</path>
+            <content><![CDATA[<?php
+
+namespace LwEvents\View;
+
+class EntryDetail extends \LWmvc\View\View
+{
+    public function __construct($type)
+    {
+        parent::__construct($type);
+        $this->dic = new \LwEvents\Services\dic();
+        $this->systemConfiguration = $this->dic->getConfiguration();
+        $this->view = new \lw_view(dirname(__FILE__).'/templates/EntryDetail.tpl.phtml');
+        $this->view->PrepareLogoWidthHelper = new \LwEvents\View\Helper\PrepareLogoWidthHelper();
+        $this->view->PrepareEventDateOutputHelper = new \LwEvents\View\Helper\PrepareEventDateOutputHelper();
+        $this->view->PrepareGetBackUrlFromDetailHelper = new \LwEvents\View\Helper\PrepareGetBackUrlFromDetailHelper();
+    }
+
+    public function setConfiguration($configuration)
+    {
+        $this->configuration = $configuration;
+    }    
+    
+    public function render()
+    {
+        $this->view->lang = $this->configuration->getValueByKey("language");
+        $this->view->ical = $this->configuration->getValueByKey("useical");
+        if ($this->configuration->getValueByKey("usecss")) {
+            $response = \lw_registry::getInstance()->getEntry('response');
+            $response->addHeaderItems('css', file_get_contents(dirname(__FILE__) . '/css/EntryDetail.css'));
+        }
+        return $this->view->render();
+    }
+}
+]]></content>
+        </file>
+        
+        <file>
+            <md5>41b428ec1e699e067305938993158234</md5>
+            <path>[package]LwEvents/View/templates/EntryList.tpl.phtml</path>
+            <content><![CDATA[<link rel="alternate" type="application/rss+xml" title="RSS" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"rss"));?>">
+<div id="LwEvents">
+
+    <?php if($this->archiveView): ?>
+    <script type="text/javascript">
+        $(document).ready(function(){
+
+            $('select#LwEvents_SelectArchiveYear').change(function(){
+                document.location.href = $("#LwEvents_SelectArchiveYear").val();
+            });
+
+        });
+    </script>
+    
+    <div id="LwEvents_ArchiveNavigation">
+
+        <div class="LwEvents_BackToCurrentEvents">
+            <a class="LwEvents_ButtonBackToCurrentEvents" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showList")); ?>">
+            <span><?php if ($this->lang == "en"): ?>back to current events<?php else: ?>zur&uuml;ck zu den aktuellen Eintr&auml;gen<?php endif; ?></span>
+            </a>
+        </div>
+
+        <div class="LwEvents_SelectArchiveYear">
+            <span class="LwEvents_SelectArchiveYear_Label"><?php if ($this->lang == "en"): ?>Year<?php else: ?>Archivjahr<?php endif; ?>: </span>
+            <select id="LwEvents_SelectArchiveYear">
+                <?php foreach($this->availableYears as $year => $active): ?>
+                <option value="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showArchive", "year"=>$year)); ?>" <?php if($this->year == $year): ?> selected="selected"<?php endif; ?>><?php echo $year; ?>&nbsp;&nbsp;</option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        
+    </div>
+    <?php else: ?>
+        <div class="LwEvents_Admin">
+        <?php if ($this->admin) : ?>
+            <a class="LwEvents_AddButton" href="<?php echo $this->addUrl; ?>"><span><?php if ($this->lang == "en"): ?>add new event<?php else: ?>neuen Termin anlegen<?php endif; ?></span></a>
+        <?php endif; ?>
+        <?php if ($this->ical) : ?>
+            <a class="LwEvents_AddButton ICalAll" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"downloadCompleteICals")); ?>"><span><?php if ($this->lang == "en"): echo "download all events"; else: echo "alle Termine herunterladen"; endif; ?></span></a>
+        <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
+    <div id="LwEvents_MainList">
+
+    <?php if ($this->collection->count() > 0) : ?>
+        <?php foreach ($this->collection as $entry) : ?>
+        <div class="LwEvents_EventEntry">
+            <?php if ($this->admin) : ?>
+            <div class="LwEvents_Admin">
+                    <a class="LwEvents_DeleteButton" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"deleteEntry", "id" => $entry->getValueByKey('id'))); ?>" onclick="return confirm('Diesen Eintrag wirklich l&ouml;schen ?');"><span><?php if ($this->lang == "en"): ?>delete<?php else: ?>l&ouml;schen<?php endif; ?></span></a>
+                    <a class="LwEvents_EditButton" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"showEditEntryForm", "id" => $entry->getValueByKey('id'))); ?>"><span><?php if ($this->lang == "en"): ?>edit<?php else: ?>bearbeiten<?php endif; ?></span></a>
+            </div>
+            <?php endif; ?>
+            <?php if ($entry->getValueByKey("opt1file")) : ?>
+            <div class="clearfix">
+                <img class="LwEvents_Logo" src="<?php echo $this->config['url']['resource'].'lw_events/'.$entry->getValueByKey("opt1file"); ?>" >
+                <div class="LwEvents_EntryWithLogo" style="float:left;width: <?php echo $this->PrepareLogoWidthHelper->execute($this->config, $entry); ?>px;">
+            <?php endif; ?>                        
+                    <h2 class="LwEvents_EntryTitle"><?php echo $entry->getValueByKey("opt1text"); ?></h2>
+                    <div class="LwEvents_EntryDate">
+                        <?php echo $this->PrepareEventDateOutputHelper->execute($entry); ?><?php if(strlen($entry->getValueByKey("opt2text"))>0 && $entry->getValueByKey("opt2text") != "."): ?><span class="LwEvents_EntryLocation">, <?php echo $entry->getValueByKey("opt2text"); ?></span><?php endif; ?>
+                    </div>
+            <?php if ($entry->getValueByKey("opt1file")) : ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <div class="LwEvents_EntryTeaserText">
+                <?php  $array = $this->PrepareEntryTextAndMoreLinkHelper->execute($entry); 
+                if(strlen($array['text'])>0): echo $array['text']; endif; ?><br>
+                <a class="LwEvents_EntryDetailLink <?php echo $array['class']; ?>" <?php if($array['class'] == "extern"): ?>target="_blank"<?php endif; ?> href="<?php echo $array['targeturl']; ?>"><span>[<?php if ($this->lang == "en"): ?>more<?php else: ?>mehr<?php endif; ?>]</span></a>
+                <?php if ($this->ical) : ?>
+                <a class="LwEvents_EditButton ICalSingle" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"downloadICal", "id" => $entry->getValueByKey('id'))); ?>"><span>[iCal <?php if ($this->lang == "en"): ?> download<?php else: ?>herunterladen<?php endif; ?>]</span></a>
+                <?php endif; ?>
+            </div>
+            
+        </div>
+        <?php endforeach; ?>
+        <?php else : ?>
+        <div class="LwEvents_NoEntryAvailable">
+            <?php if ($this->lang == "en"): ?>no events available<?php else: ?>keine Eintr&auml;ge vorhanden<?php endif; ?>
+        </div>
+        <?php endif; ?>
+
+        <?php if(!$this->archiveView): ?>
+        <div id="LwEvents_ArchiveNavigation">
+            <a href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"showArchive")); ?>">
+                <span><?php if ($this->lang == "en"): echo "go to archive"; else: echo "zum Archiv"; endif; ?></span>
+            </a>
+        </div>
+        <?php endif; ?>
+    </diV>
+</div>
+]]></content>
+        </file>
+        
+        <file>
+            <md5>562f48119063ea7a44d2fbadf27814ca</md5>
+            <path>[package]LwEvents/View/templates/EntryDetail.tpl.phtml</path>
+            <content><![CDATA[<div id="LwEvents">
+    
+    <div class="LwEvents_BackToEventsList">
+        <a class="LwEvents_ButtonBackToEventsList" href="<?php echo $this->PrepareGetBackUrlFromDetailHelper->execute($this->entity); ?>">
+        <span><?php if ($this->lang == "en"): ?>back<?php else: ?>zur&uuml;ck<?php endif; ?></span>
+        </a>
+        <?php if($this->ical): ?>
+            <a class="LwEvents_ButtonBackToEventsList" href="<?php echo \lw_page::getInstance()->getUrl(array("cmd"=>"downloadICal", "id" => $this->entity->getValueByKey('id'))); ?>"><span>[iCal <?php if ($this->lang == "en"): ?> download<?php else: ?>herunterladen<?php endif; ?>]</span></a>
+        <?php endif; ?>
+    </div>
+
+    <div class="LwEvents_EntryDetail">
+    
+        <?php if ($this->entity->getValueByKey("opt1file")) : ?>
+        <div class="clearfix">
+            <img class="LwEvents_Logo" src="<?php echo $this->config['url']['resource'].'lw_events/'.$this->entity->getValueByKey("opt1file"); ?>" >
+            <div class="LwEvents_EntryWithLogo" style="float:left;width: <?php echo $this->PrepareLogoWidthHelper->execute($this->config, $this->entity); ?>px;">
+        <?php endif; ?>                        
+                <div class="LwEvents_EntryDate">
+                    <?php echo $this->PrepareEventDateOutputHelper->execute($this->entity); ?>
+                </div>
+                <h2 class="LwEvents_EntryTitle"><?php echo $this->entity->getValueByKey("opt1text"); ?></h2>
+                <?php if(strlen($this->entity->getValueByKey("opt2text"))>0): ?><div class="LwEvents_EntryLocation"><?php echo $this->entity->getValueByKey("opt2text"); ?></div><?php endif; ?>
+        <?php if ($this->entity->getValueByKey("opt1file")) : ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <div class="LwEvents_EntryTeaserText">
+            <?php echo $this->entity->getValueByKey("opt1clob"); ?>
+        </div>
+    </div>
+    
+</div>    
+]]></content>
+        </file>
+        
+        <file>
+            <md5>24a49a0ee7b6d4459501149b6a0ffd64</md5>
+            <path>[package]LwEvents/View/templates/ConfigurationForm.tpl.phtml</path>
+            <content><![CDATA[<script type="text/javascript" src="<?php echo $this->bootstrapJS ?>"></script>
+<link rel="stylesheet" href="<?php echo $this->bootstrapCSS ?>" />
+
+<style>
+    body{background-color: #7F7F7F!important}
+
+    #lw_fe_inputelement_lw_formular_template{width: 800px;height: 600px;}
+    #tabs ul li a{color: #fff;}
+
+    .activeline {background: #e8f2ff !important;}
+
+    .active{background-color: #777;}
+
+    .description {
+        margin-bottom:60px;
+        border:1px solid #aaa;
+        border-radius: 5px;
+        background-color:#eee;
+        padding:10px;
+    }
+
+    legend.lwadminform {
+        height: 20px;
+        margin-bottom: 2px;
+        line-height: 20px;
+        width: 260px;
+    }
+    html body div#lwContent div {
+        font-size: 12px!important;
+    }
+
+    fieldset.lwadminform {
+        position: relative;
+    }
+
+
+    html body div#lwLeftnavi div#lwPageTreeNav.lwBoxLeftContent center form#gotoform input#gotoid {
+        width: 45px;
+        margin-bottom: 0;
+    }
+    html body div#lwLeftnavi div#lwPageTreeNav.lwBoxLeftContent center {
+        height: 35px;
+    }
+
+
+    #container_plugin_bionrw_news{
+        background-color: #fff;
+        border: 1px solid #bbb;
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    #container_plugin_bionrw_news #myform .control-group input{
+        height: 30px;
+        width: 50px;
+    }
+    #container_plugin_bionrw_news #myform .control-group select{width: 330px;}
+
+    <?php if ($this->entity->getValueByKey('teaserview')): ?>
+        #teaseroptions{display: block;}
+    <?php else: ?>
+        #teaseroptions{display: none;}
+    <?php endif;?>
+    
+</style>
+<script>
+$(document).ready(function(){
+    $('#teaserview').click(function(){
+        if ($("#teaserview").attr("checked")) {
+            $("#teaseroptions").slideDown();
+        }
+        else {
+            $("#teaseroptions").slideUp();
+        }
+    });
+});
+</script>
+    
+<fieldset class="lwadminform">
+
+    <legend class="lwadminform">LW Events Basisdaten bearbeiten</legend>
+    <div id="container_plugin_bionrw_news">
+        <!--<div class="description" >
+</div>-->
+
+        <br>
+        <?php if ($this->noConfigurationSaved): ?>
+        <p>Hinweis : <br>Das Plugin wurde zum ersten mal aufgerufen. Es sind noch keine Einstellungen gespeichert!</p>
+        <?php endif; ?>
+        <form id="myform" action="<?php echo $this->actionUrl ?>" method="POST" class="form-horizontal">
+
+            <div class="control-group">
+                <label class="control-label" for="language">Sprache</label>
+                <div class="controls">
+                    <select id="language" name="language">
+                        <option value="de" <?php if ($this->entity->getValueByKey('language') == "de"): ?>selected="selected"<?php endif; ?>>Deutsch</option>
+                        <option value="en" <?php if ($this->entity->getValueByKey('language') == "en"): ?>selected="selected"<?php endif; ?>>Englisch</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label" for="usecss">CSS verwenden ?</label>
+                <div class="controls">
+                    <input type="checkbox" id="usecss" name="usecss" value="1" <?php if ($this->entity->getValueByKey('usecss')): ?> checked="checked" <?php endif; ?> >
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label" for="adminmode">Adminmode ?</label>
+                <div class="controls">
+                    <input type="checkbox" id="adminmode" name="adminmode" value="1" <?php if ($this->entity->getValueByKey('adminmode')): ?> checked="checked" <?php endif; ?> >
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label" for="useical">iCal anbieten ?</label>
+                <div class="controls">
+                    <input type="checkbox" id="useical" name="useical" value="1" <?php if ($this->entity->getValueByKey('useical')): ?> checked="checked" <?php endif; ?> >
+                </div>
+            </div>
+            
+            <hr>
+            <div class="description"><b>Layout der Teaseransicht ist nur f&uuml;r den Teaserbereich optimiert!</b></div>
+            <div class="control-group">
+                <label class="control-label" for="teaserview">Teaser-Ansicht verwenden ?</label>
+                <div class="controls">
+                    <input type="checkbox" id="teaserview" name="teaserview" value="1" <?php if ($this->entity->getValueByKey('teaserview')): ?> checked="checked" <?php endif; ?> >
+                </div>
+            </div>
+
+            <div id="teaseroptions">
+                <div class="control-group">
+                    <label class="control-label" for="teaserelements">Anzahl anzuzeigender Elemente in der Teaser-Ansicht </label>
+                    <div class="controls">
+                        <select id="teaserelements" name="teaserelements">
+                            <option value="1" <?php if ($this->entity->getValueByKey('teaserelements') == "1"): ?>selected="selected"<?php endif; ?>>1 Element</option>
+                            <option value="2" <?php if ($this->entity->getValueByKey('teaserelements') == "2"): ?>selected="selected"<?php endif; ?>>2 Elemente</option>
+                            <option value="3" <?php if ($this->entity->getValueByKey('teaserelements') == "3"): ?>selected="selected"<?php endif; ?>>3 Elemente</option>
+                            <option value="4" <?php if ($this->entity->getValueByKey('teaserelements') == "4"): ?>selected="selected"<?php endif; ?>>4 Elemente</option>
+                            <option value="5" <?php if ($this->entity->getValueByKey('teaserelements') == "5"): ?>selected="selected"<?php endif; ?>>5 Elemente</option>
+                            <option value="6" <?php if ($this->entity->getValueByKey('teaserelements') == "6"): ?>selected="selected"<?php endif; ?>>6 Elemente</option>
+                            <option value="7" <?php if ($this->entity->getValueByKey('teaserelements') == "7"): ?>selected="selected"<?php endif; ?>>7 Elemente</option>
+                            <option value="8" <?php if ($this->entity->getValueByKey('teaserelements') == "8"): ?>selected="selected"<?php endif; ?>>8 Elemente</option>
+                            <option value="9" <?php if ($this->entity->getValueByKey('teaserelements') == "9"): ?>selected="selected"<?php endif; ?>>9 Elemente</option>
+                            <option value="10" <?php if ($this->entity->getValueByKey('teaserelements') == "10"): ?>selected="selected"<?php endif; ?>>10 Elemente</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="teaserview">Kalender verwenden ?</label>
+                    <div class="controls">
+                        <input type="checkbox" id="teaserview" name="calendar" value="1" <?php if ($this->entity->getValueByKey('calendar')): ?> checked="checked" <?php endif; ?>>
+                    </div>
+                </div>
+            </div>
+            <br>
+
+            <div style="margin-top:15px;margin-bottom:20px; margin-left:20px;">
+                <input class="btn btn-primary" type="submit" value="speichern" onClick="submitForm()" />&nbsp;<input class="btn" type="button" value="abbrechen" onclick="document.location.href = '?obj=content';"/>
+            </div>
+        </form>
+    </div>
+</fieldset>]]></content>
+        </file>
+        
+        <file>
+            <md5>6d16367127e7ea5b11c0ce6135c09f1f</md5>
+            <path>[package]LwEvents/View/templates/EntryForm.tpl.phtml</path>
+            <content><![CDATA[<style>
+    #containerCms, #containerMainText, #containerExt, #containerTeasertext{display: none;}
+</style>
+<script>
+    $(document).ready(function() {
+        var icon = "<?php echo $this->mediaUrl; ?>pics/fatcow_icons/16x16_0180/calendar.png";
+
+        $("#datepicker_show").datepicker({
+            altField: "#datepicker",
+            altFormat: "yymmdd",
+            showOn: "button",
+            buttonImage: "<?php echo $this->mediaUrl ?>pics/fatcow_icons/16x16_0180/calendar.png",
+            buttonImageOnly: true
+        });
+        $("#datepicker_show").datepicker("option", "dateFormat", "dd.mm.yy");
+
+        var date = "<?php echo $this->formatDate($this->entity->getValueByKey('opt2number')); ?>";
+        $("#datepicker_show").datepicker("setDate", date);
+
+        $("#datepicker_show2").datepicker({
+            altField: "#datepicker2",
+            altFormat: "yymmdd",
+            showOn: "button",
+            buttonImage: "<?php echo $this->mediaUrl ?>pics/fatcow_icons/16x16_0180/calendar.png",
+            buttonImageOnly: true
+        });
+        $("#datepicker_show2").datepicker("option", "dateFormat", "dd.mm.yy");
+
+        var date2 = "<?php echo $this->formatDate($this->entity->getValueByKey('opt4number')); ?>";
+        console.log('date2: '+date2);
+        $("#datepicker_show2").datepicker("setDate", date2);
+
+        <?php if ($this->entity->getValueByKey("opt5number") == 2) : ?>
+        $('#containerTeasertext').show();
+        $('#containerCms').show();
+        <?php elseif ($this->entity->getValueByKey("opt5number") == 1) : ?>
+        $('#containerMainText').show();
+        <?php elseif ($this->entity->getValueByKey("opt5number") == 3) : ?>
+        $('#containerTeasertext').show();
+        $('#containerExt').show();
+        <?php else : ?>
+        $('#containerMainText').show();
+        <?php endif; ?>
+            
+        $('#typetext').click(function(){
+            $('#containerCms').hide();
+            $('#containerExt').hide();
+            $('#containerTeasertext').hide();
+            $('#containerMainText').show();
+        });
+        $('#typecms').click(function(){
+            $('#containerMainText').hide();
+            $('#containerExt').hide();
+            $('#containerTeasertext').show();
+            $('#containerCms').show();
+        });
+        $('#typeext').click(function(){
+            $('#containerMainText').hide();
+            $('#containerCms').hide();
+            $('#containerTeasertext').show();
+            $('#containerExt').show();
+        });            
+            
+    });
+
+// Notice: The simple theme does not use all options some of them are limited to the advanced theme
+    tinyMCE.init({
+        mode: "specific_textareas",
+        editor_selector: "mceEditor",
+        theme: "advanced",
+	    theme_advanced_buttons1 : "bold,italic,bullist,numlist,link,unlink,undo,redo,removeformat,code",
+        language: "de",
+        convert_urls: false,
+        relative_urls: false,
+        remove_script_host: false
+    });
+</script>
+<div id="LwEvents">
+    <div id="LwEvents_EntryForm">
+        <h2><?php 
+            if ($this->formtype =="new") {
+                if ($this->lang == "en") {
+                    echo "New Event";
+                } 
+                else {
+                    echo "Neue Veranstaltung";
+                }
+            }
+            else {
+                if ($this->lang == "en") {
+                    echo "Edit Event";
+                } 
+                else {
+                    echo "Veranstaltung bearbeiten";
+                }
+            }
+        ?></h2>
+        
+        <div class="LwEvents_BackToEventsList">
+            <a class="LwEvents_ButtonBackToEventsList" href="<?php 
+                if ($this->entity->getValueByKey("opt4number") < date("Ymd") && $this->entity->getValueByKey("opt4number")) {
+                    echo \lw_page::getInstance()->getUrl(array("cmd"=>"showArchive", "year" => substr($this->entity->getValueByKey("opt2number"), 0, 4))); 
+                }
+                else {
+                    echo \lw_page::getInstance()->getUrl(array("cmd"=>"showList")); 
+                }
+            ?>">
+            <span><?php if ($this->lang == "en"): ?>back<?php else: ?>zur&uuml;ck<?php endif; ?></span>
+            </a>
+        </div>
+
+        <?php if(is_array($this->errors)): ?>
+        <div class="LwEvents_ErrorMesage"><?php if ($this->lang == "en"): ?>Errors occured!<?php else: ?>Es gibt Fehler!<?php endif; ?></div>
+        <?php endif; ?>    
+
+        <form action="<?php echo $this->actionUrl; ?>" method="POST" ENCTYPE="multipart/form-data">
+
+            <!-- Datum von bis -->
+
+            <div class="LwEventsForm_Block">
+                
+                <div class="LwEventsForm_Date LwEventsForm_DateFrom">
+                    <label for="datepicker"><?php if ($this->lang == "en"): ?>Date:<span>(Start)</span><?php else: ?>Datum:<span>(von)</span><?php endif; ?></label><br>
+                    <input id="datepicker_show" type="text" value="" disabled>
+                    <input id="datepicker" type="hidden" name="opt2number" value="">
+                </div>
+                <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2number']); ?>
+                
+                <div class="LwEventsForm_date LwEventsForm_DateTo">
+                    <label for="datepicker"><?php if ($this->lang == "en"): ?>Date:<span>(End)</span><?php else: ?>Datum:<span>(bis)</span><?php endif; ?></label><br>
+                    <input id="datepicker_show2" type="text" value="" disabled>
+                    <input id="datepicker2" type="hidden" name="opt4number" value="">
+                </div>
+                <?php if(isset($this->errors["opt4number"]["ENDBEFORESTART"])): ?>
+                    <div class="alert alert-block alert-error">
+                        <h3 class="alert-heading"><?php if ($this->lang == "en"): ?>Error<?php else: ?>Fehler<?php endif; ?>:</h3>
+                        <p><?php if ($this->lang == "en"): ?>The end of the event can not take place before the event has started.<?php else: ?>Das Enddatum darf nicht kleiner sein als das Startdatum.<?php endif; ?></p>
+                    </div>
+                <?php endif; ?>
+                
+            </div>
+
+            <!-- Überschrift -->
+
+            <div class="LwEventsForm LwEvents_Headline">
+                <label for="headline1"><?php if ($this->lang == "en"): ?>Headline<?php else: ?>&Uuml;berschrift<?php endif; ?>:</label>
+                <input id="headline1" type="text" name="opt1text" value="<?php echo $this->entity->getValueByKey("opt1text"); ?>">
+                <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1text']); ?>
+            </div>
+
+            <!-- Ort -->
+
+            <div class="LwEventsForm LwEvents_Location">
+                <label for="opt2text"><?php if ($this->lang == "en"): ?>Place<?php else: ?>Ort<?php endif; ?>:</label>
+                <input id="opt2text" type="text" name="opt2text" value="<?php echo $this->entity->getValueByKey("opt2text"); ?>">
+                <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2text']); ?>
+            </div>
+
+            <!-- Logo -->
+
+            <div class="LwEventsForm LwEvents_Logo">
+                <div id="LwEventsForm_UploadedFile">
+                    <div class="LwEvents_HelpText"><?php if ($this->lang == "en"): ?>Uploaded Logo File (only .gif, .jpg and .png allowed)<?php else: ?>Hochgeladene Logodatei (nur .gif, .jpg und .png erlaubt)<?php endif; ?></div>
+                    <?php if($this->oldEntity->getValueByKey("opt1file")) :?>
+                        <div class="LwEvents_Admin">
+                            <a class="LwEvents_deleteLogoButton" href="<?php echo lw_page::getInstance()->getUrl(array("cmd"=>"deleteLogo", "id"=>$this->entity->getValueByKey("id"))); ?>" onclick="return confirm('<?php if ($this->lang == "en"): ?>Do you really want to delete the Logo?<?php else: ?>Logo wirklich l&ouml;schen ?<?php endif; ?>');" ><?php if ($this->lang == "en"): ?>delete Logo<?php else: ?>Logo l&ouml;schen<?php endif; ?></a>
+                        </div>
+                        <img class="LwEvents_LogoPreview" src="<?php echo $this->config['url']['resource']."lw_events/".$this->oldEntity->getValueByKey("opt1file"); ?>">
+                    <?php endif; ?>
+                </div>
+                <input class="upload" name="opt1file" type="file">
+                <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1file']); ?>
+            </div>
+
+            <!-- Termintyp -->
+
+            <div class="LwEventsForm LwEvents_Type">
+                <div class="LwEvents_HelpText"><?php if ($this->lang == "en"): ?>Choose description type<?php else: ?>Bitte Termin-Eingabe w&auml;hlen<?php endif; ?>:</div>
+
+                <div class="LwEventsForm_Block">
+                    <input class="LwEventsForm LwEventsTextType" type="radio" id="typetext" value="1" name="opt5number" <?php if (!$this->entity->getValueByKey("opt5number") || $this->entity->getValueByKey("opt5number") == 1): ?> checked="checked" <?php endif; ?>>
+                    <label class="LwEventsForm LwEventsTextType" for="typetext"><?php if ($this->lang == "en"): ?>free text<?php else: ?>Texteingabe<?php endif; ?></label><br/>
+                </div>
+
+                <div class="LwEventsForm_Block">
+                    <input class="LwEventsForm LwEventsCMSType" type="radio" id="typecms" value="2" name="opt5number" <?php if ($this->entity->getValueByKey("opt5number") == 2) : ?> checked="checked" <?php endif; ?>>
+                    <label class="LwEventsForm LwEventsCMSType" for="typecms"><?php if ($this->lang == "en"): ?>link to internal cms page<?php else: ?>Verweis auf eine CMS-Seite<?php endif; ?></label><br>
+                </div>
+
+                <div class="LwEventsForm_Block">
+                    <input class="LwEventsForm LwEventsExternalType" type="radio" id="typeext" value="3" name="opt5number" <?php if ($this->entity->getValueByKey("opt5number") == 3) : ?> checked="checked" <?php endif; ?>>
+                    <label class="LwEventsForm LwEventsExternalType" for="typeext"><?php if ($this->lang == "en"): ?>link to external page<?php else: ?>Verweis auf eine externe Seite<?php endif; ?></label>
+                </div>
+            </div>
+
+            <!-- Text -->
+
+            <div id="containerMainText" class="LwEventsForm LwEvents_MainText">
+                <label for="mainText">Text:</label><br>
+                <textarea style="width:495px; height:250px;" id="mainText" class="text mceEditor beliebig" name="opt1clob"><?php echo $this->entity->getValueByKey("opt1clob"); ?></textarea>
+                <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1clob']); ?>
+            </div>
+
+            <!-- Teasertext -->
+
+            <div id="containerTeasertext" class="LwEventsForm LwEvents_TeaserText">
+                <label for="teasertext">Teasertext:</label><br>
+                <textarea style="width:495px; height:250px;" id="teasertext" class="text mceEditor beliebig" name="opt2clob"><?php echo $this->entity->getValueByKey("opt2clob"); ?></textarea>
+                <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt2clob']); ?>
+            </div>
+            
+            
+            <!-- Seitenindex -->
+
+            <div id="containerCms" class="LwEventsForm LwEvents_PageIndex">
+                <label for="link"><?php if ($this->lang == "en"): ?>Page Id<?php else: ?>Seiten Id<?php endif; ?>:</label><br>
+                <span class="LwEvents_HelpText"><?php if ($this->lang == "en"): ?>enter internal CMS page ID number<?php else: ?>Soll auf eine Seite im CMS verwiesen werden, so ist hier die Indexnr. einzutragen.<?php endif; ?></span><br>
+                <input id="cmslink" class="mceEditor" type="text" name="opt1number" value="<?php echo $this->entity->getValueByKey("opt1number"); ?>" >
+                <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt1number']); ?>
+            </div>
+
+            <!-- Target URL -->
+
+            <div id="containerExt" class="LwEventsForm LwEvents_TargetUrl">
+                <label for="link">Url:</label><br>
+                <input id="extlink" type="text" name="opt3text" value="<?php echo $this->entity->getValueByKey("opt3text"); ?>" >
+                <?php echo $this->ValidationErrorViewHelper->getOutput($this->errors['opt3text']); ?>
+            </div>
+
+            <!-- Submit Button -->
+
+            <div id="formButtons" class="LwEventsForm LwEvents_SubmitButton">
+                <input type="submit" value="<?php if ($this->lang == "en"): ?>save<?php else: ?>speichern<?php endif; ?>">
+            </div>
+
+        </form>
+
+    </div>
+</div>    
+]]></content>
+        </file>
+    </FileUpdates>
+</Updates>
